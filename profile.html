@@ -1,0 +1,563 @@
+<!-- this is profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile – CraftNext</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+.profile-page { padding: 50px 60px; max-width: 1100px; margin: auto; }
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 28px;
+  margin-top: 24px;
+}
+
+.profile-sidebar {
+  background: white;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  text-align: center;
+  height: fit-content;
+}
+
+.profile-avatar {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #e86a33, #ff9f68);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  margin: 0 auto 16px;
+  font-family: 'Playfair Display', serif;
+}
+
+.profile-sidebar h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.profile-sidebar .role-label {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #fde8d8;
+  color: #e86a33;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #555;
+  transition: 0.2s;
+  text-decoration: none;
+  margin-bottom: 6px;
+}
+
+.sidebar-nav-link:hover,
+.sidebar-nav-link.active {
+  background: #fde8d8;
+  color: #e86a33;
+}
+
+.sidebar-nav-link.logout-link {
+  color: #e74c3c;
+  margin-top: 20px;
+}
+
+.sidebar-nav-link.logout-link:hover { background: #fff0f0; }
+
+/* MAIN PANELS */
+.profile-main > div { display: none; }
+.profile-main > div.active { display: block; }
+
+.profile-section {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  margin-bottom: 24px;
+}
+
+.profile-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-field { margin-bottom: 16px; }
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 6px;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  background: #fafafa;
+  transition: border-color 0.2s;
+}
+
+.form-field input:focus {
+  border-color: #e86a33;
+  background: white;
+}
+
+.save-btn {
+  padding: 12px 28px;
+  background: #e86a33;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.save-btn:hover { background: #d55f28; }
+
+.msg { padding: 12px; border-radius: 8px; margin-bottom: 14px; font-family: 'Inter', sans-serif; font-size: 14px; display: none; }
+.msg.error { background: #fff0f0; color: #c0392b; }
+.msg.success { background: #f0fff4; color: #27ae60; }
+
+/* ORDERS */
+.order-card {
+  background: #fdf8f3;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 14px;
+  border: 1px solid #f0e0d0;
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.order-id { font-size: 13px; color: #aaa; font-family: 'Inter', sans-serif; }
+.order-date { font-size: 13px; color: #aaa; font-family: 'Inter', sans-serif; }
+
+.order-items { font-family: 'Inter', sans-serif; font-size: 14px; color: #555; margin-bottom: 10px; }
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order-total { font-weight: 700; font-family: 'Inter', sans-serif; color: #e86a33; }
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+}
+
+.status-pending   { background: #fff8e1; color: #f57f17; }
+.status-confirmed { background: #e8f5e9; color: #2e7d32; }
+.status-shipped   { background: #e3f2fd; color: #1565c0; }
+.status-delivered { background: #e8f5e9; color: #1b5e20; }
+.status-cancelled { background: #ffebee; color: #b71c1c; }
+
+.empty-state { text-align: center; padding: 40px; color: #aaa; font-family: 'Inter', sans-serif; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <nav class="navbar">
+    <a class="brand" href="index.html">CraftNext</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="cart.html">Cart 🛒</a>
+      <a href="wishlist.html">Wishlist ❤️</a>
+    </div>
+  </nav>
+</header>
+
+
+<div class="profile-page">
+  <h1 style="font-family:'Playfair Display',serif;font-size:28px;margin-bottom:8px">My Account</h1>
+  <p style="color:#888;font-family:'Inter',sans-serif;font-size:14px">Manage your profile, orders, and preferences</p>
+
+  <div class="profile-grid">
+
+    <!-- SIDEBAR -->
+    <div class="profile-sidebar">
+      <div class="profile-avatar" id="profileInitial">?</div>
+      <h3 id="profileNameDisplay">Loading...</h3>
+      <div class="role-label" id="profileRoleLabel">buyer</div>
+
+      <a class="sidebar-nav-link active" onclick="showSection('orders', this)">📦 My Orders</a>
+      <a class="sidebar-nav-link" onclick="showSection('editProfile', this)">✏️ Edit Profile</a>
+      <a class="sidebar-nav-link" onclick="showSection('security', this)">🔒 Security</a>
+      <a class="sidebar-nav-link logout-link" onclick="Auth.logout()">🚪 Logout</a>
+    </div>
+
+    <!-- MAIN PANELS -->
+    <div class="profile-main">
+
+      <!-- ORDERS PANEL -->
+      <div id="panel-orders" class="active">
+        <div class="profile-section">
+          <h2>My Orders</h2>
+          <div id="ordersList">
+            <div style="text-align:center;padding:30px;color:#aaa;font-family:Inter,sans-serif">Loading orders...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDIT PROFILE PANEL -->
+      <div id="panel-editProfile">
+        <div class="profile-section">
+          <h2>Edit Profile</h2>
+          <div class="msg error" id="profileError"></div>
+          <div class="msg success" id="profileSuccess"></div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label>Full Name</label>
+              <input type="text" id="editName" placeholder="Your name">
+            </div>
+            <div class="form-field">
+              <label>Email</label>
+              <input type="email" id="editEmail" disabled style="opacity:0.6;cursor:not-allowed">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Phone</label>
+              <input type="tel" id="editPhone" placeholder="+91 XXXXX XXXXX">
+            </div>
+            <div class="form-field">
+              <label>City</label>
+              <input type="text" id="editCity" placeholder="Mumbai">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Address</label>
+            <input type="text" id="editAddress" placeholder="Street address">
+          </div>
+          <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- SECURITY PANEL -->
+      <div id="panel-security">
+        <div class="profile-section">
+          <h2>Change Password</h2>
+          <div class="msg error" id="securityError"></div>
+          <div class="msg success" id="securitySuccess"></div>
+
+          <div class="form-field">
+            <label>New Password</label>
+            <input type="password" id="newPassword" placeholder="Minimum 6 characters">
+          </div>
+          <div class="form-field">
+            <label>Confirm New Password</label>
+            <input type="password" id="confirmPassword" placeholder="Repeat password">
+          </div>
+          <button class="save-btn" onclick="changePassword()">Update Password</button>
+        </div>
+      </div>
+
+    </div><!-- /profile-main -->
+  </div><!-- /profile-grid -->
+</div>
+
+
+<script>
+/* =============================================
+   CraftNext — Frontend API Helper
+   All calls to the backend go through here
+   ============================================= */
+
+const API_BASE = "http://localhost:5000/api";
+
+/* ——— AUTH HELPERS ——— */
+
+function getToken() {
+  return localStorage.getItem("cn_token");
+}
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem("cn_user")) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAuth(data) {
+  localStorage.setItem("cn_token", data.token);
+  localStorage.setItem("cn_user", JSON.stringify(data));
+}
+
+function clearAuth() {
+  localStorage.removeItem("cn_token");
+  localStorage.removeItem("cn_user");
+}
+
+function isLoggedIn() {
+  return !!getToken();
+}
+
+function isRole(role) {
+  const u = getUser();
+  return u && u.role === role;
+}
+
+/* ——— GENERIC FETCH WRAPPER ——— */
+
+async function apiRequest(endpoint, method = "GET", body = null, auth = false) {
+  const headers = { "Content-Type": "application/json" };
+
+  if (auth) {
+    const token = getToken();
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const options = { method, headers };
+  if (body) options.body = JSON.stringify(body);
+
+  const res = await fetch(API_BASE + endpoint, options);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.message || "Request failed");
+  return data;
+}
+
+/* ——— AUTH ——— */
+
+const Auth = {
+  register: (payload) => apiRequest("/auth/register", "POST", payload),
+  login: (email, password) => apiRequest("/auth/login", "POST", { email, password }),
+  me: () => apiRequest("/auth/me", "GET", null, true),
+  updateProfile: (payload) => apiRequest("/auth/profile", "PUT", payload, true),
+  logout() {
+    clearAuth();
+    window.location.href = "login.html";
+  },
+};
+
+/* ——— PRODUCTS ——— */
+
+const Products = {
+  getAll: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/products${q ? "?" + q : ""}`);
+  },
+  getById: (id) => apiRequest(`/products/${id}`),
+  create: (payload) => apiRequest("/products", "POST", payload, true),
+  update: (id, payload) => apiRequest(`/products/${id}`, "PUT", payload, true),
+  delete: (id) => apiRequest(`/products/${id}`, "DELETE", null, true),
+};
+
+/* ——— ORDERS ——— */
+
+const Orders = {
+  create: (payload) => apiRequest("/orders", "POST", payload, true),
+  myOrders: () => apiRequest("/orders/myorders", "GET", null, true),
+  sellerOrders: () => apiRequest("/orders/seller", "GET", null, true),
+  getById: (id) => apiRequest(`/orders/${id}`, "GET", null, true),
+  updateStatus: (id, status) => apiRequest(`/orders/${id}/status`, "PUT", { status }, true),
+};
+
+/* ——— ADMIN ——— */
+
+const Admin = {
+  stats: () => apiRequest("/admin/stats", "GET", null, true),
+  users: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/users${q ? "?" + q : ""}`, "GET", null, true);
+  },
+  updateUser: (id, payload) => apiRequest(`/admin/users/${id}`, "PUT", payload, true),
+  deleteUser: (id) => apiRequest(`/admin/users/${id}`, "DELETE", null, true),
+  orders: () => apiRequest("/admin/orders", "GET", null, true),
+  products: () => apiRequest("/admin/products", "GET", null, true),
+  seedAdmin: () => apiRequest("/admin/seed-admin", "POST", null, true),
+};
+
+/* ——— UPDATE NAVBAR BASED ON LOGIN STATE ——— */
+
+function updateNavbar() {
+  const user = getUser();
+  const loginLinks = document.querySelectorAll("a[href='login.html']");
+
+  loginLinks.forEach((link) => {
+    if (user) {
+      link.textContent = user.name.split(" ")[0];
+      link.href = user.role === "admin" ? "admin.html" :
+                  user.role === "seller" ? "seller-dashboard.html" : "profile.html";
+    }
+  });
+
+  // Show/hide sell link for buyers
+  const sellLinks = document.querySelectorAll("a[href='sell.html']");
+  if (user && user.role === "buyer") {
+    sellLinks.forEach(l => l.style.display = "none");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", updateNavbar);
+
+</script>
+<script>
+
+/* ——— GUARD ——— */
+const currentUser = getUser();
+if (!currentUser) {
+  window.location.href = "login.html";
+}
+
+/* ——— INIT ——— */
+document.getElementById("profileInitial").textContent = (currentUser.name || "?")[0].toUpperCase();
+document.getElementById("profileNameDisplay").textContent = currentUser.name;
+document.getElementById("profileRoleLabel").textContent = currentUser.role;
+document.getElementById("editName").value = currentUser.name || "";
+document.getElementById("editEmail").value = currentUser.email || "";
+
+/* ——— NAVIGATION ——— */
+function showSection(name, el) {
+  document.querySelectorAll(".profile-main > div").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".sidebar-nav-link").forEach(a => a.classList.remove("active"));
+  document.getElementById("panel-" + name).classList.add("active");
+  if (el) el.classList.add("active");
+}
+
+/* ——— LOAD ORDERS ——— */
+async function loadOrders() {
+  try {
+    const orders = await Orders.myOrders();
+    const box = document.getElementById("ordersList");
+
+    if (!orders.length) {
+      box.innerHTML = `<div class="empty-state">📦<p>No orders yet. Start shopping!</p><br><a href="index.html" style="color:#e86a33">Browse Products →</a></div>`;
+      return;
+    }
+
+    box.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-card-header">
+          <span class="order-id">Order #${o._id.slice(-6).toUpperCase()}</span>
+          <span class="order-date">${new Date(o.createdAt).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" })}</span>
+        </div>
+        <div class="order-items">${o.items?.map(i => `${i.name} × ${i.qty}`).join(", ") || "—"}</div>
+        <div class="order-footer">
+          <span class="order-total">₹${o.totalAmount?.toLocaleString("en-IN")}</span>
+          <span class="status-badge status-${o.status}">${o.status}</span>
+        </div>
+      </div>
+    `).join("");
+  } catch (e) {
+    document.getElementById("ordersList").innerHTML = `<p style="color:red;font-family:Inter,sans-serif">Could not load orders.</p>`;
+  }
+}
+
+/* ——— SAVE PROFILE ——— */
+async function saveProfile() {
+  const payload = {
+    name: document.getElementById("editName").value.trim(),
+    phone: document.getElementById("editPhone").value.trim(),
+    address: document.getElementById("editAddress").value.trim(),
+    city: document.getElementById("editCity").value.trim(),
+  };
+
+  try {
+    const updated = await Auth.updateProfile(payload);
+    saveAuth({ ...currentUser, ...updated });
+    document.getElementById("profileSuccess").textContent = "Profile updated!";
+    document.getElementById("profileSuccess").style.display = "block";
+    document.getElementById("profileError").style.display = "none";
+    document.getElementById("profileNameDisplay").textContent = updated.name;
+    document.getElementById("profileInitial").textContent = (updated.name || "?")[0].toUpperCase();
+  } catch (e) {
+    document.getElementById("profileError").textContent = e.message;
+    document.getElementById("profileError").style.display = "block";
+    document.getElementById("profileSuccess").style.display = "none";
+  }
+}
+
+/* ——— CHANGE PASSWORD ——— */
+async function changePassword() {
+  const np = document.getElementById("newPassword").value;
+  const cp = document.getElementById("confirmPassword").value;
+
+  if (np.length < 6) {
+    document.getElementById("securityError").textContent = "Password must be at least 6 characters.";
+    document.getElementById("securityError").style.display = "block";
+    return;
+  }
+
+  if (np !== cp) {
+    document.getElementById("securityError").textContent = "Passwords do not match.";
+    document.getElementById("securityError").style.display = "block";
+    return;
+  }
+
+  try {
+    await Auth.updateProfile({ password: np });
+    document.getElementById("securitySuccess").textContent = "Password changed successfully!";
+    document.getElementById("securitySuccess").style.display = "block";
+    document.getElementById("securityError").style.display = "none";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmPassword").value = "";
+  } catch (e) {
+    document.getElementById("securityError").textContent = e.message;
+    document.getElementById("securityError").style.display = "block";
+  }
+}
+
+/* ——— INIT ——— */
+loadOrders();
+
+</script>
+</body>
+</html>

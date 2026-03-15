@@ -1,0 +1,163 @@
+<!-- this is seller.html -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Seller Shop – CraftNext</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <a class="brand" href="index.html">CraftNext</a>
+
+    <div>
+        <a href="index.html">← Home</a>
+        <span id="navUser"></span>
+    </div>
+</header>
+
+
+<section>
+
+    <!-- SELLER HEADER -->
+    <div class="seller-header">
+        <img id="sellerImg" class="seller-avatar">
+        <div>
+            <h2 id="sellerName"></h2>
+            <p>Handmade artisan shop</p>
+        </div>
+    </div>
+
+    <h3>Products by Seller</h3>
+
+    <div class="product-grid" id="sellerProducts"></div>
+
+</section>
+
+
+<!-- FLOATING CART -->
+<div class="floating-cart" onclick="location.href='cart.html'">
+ 🛒 <span id="cartCount">0</span>
+</div>
+
+
+<script src="api.js"></script>
+<script src="products.js"></script>
+<script src="script.js"></script>
+
+
+<script>
+
+/* ================= NAVBAR AUTH ================= */
+
+const navUser = document.getElementById("navUser");
+
+const user = localStorage.getItem("cn_user")
+? JSON.parse(localStorage.getItem("cn_user"))
+: null;
+
+if(user){
+
+navUser.innerHTML = `
+<span style="margin-left:10px;">Hi, ${user.name}</span>
+<a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
+`;
+
+document.getElementById("logoutBtn").onclick = function(e){
+e.preventDefault();
+Auth.logout();
+};
+
+}else{
+
+navUser.innerHTML = `
+<a href="login.html" style="margin-left:10px;">Login</a>
+`;
+
+}
+
+
+/* ================= GET SELLER FROM URL ================= */
+
+const seller = new URLSearchParams(location.search).get("seller");
+
+/* SAFETY */
+
+if(!seller){
+document.body.innerHTML = "<h2 style='padding:40px'>Seller not found</h2>";
+throw new Error("Invalid seller");
+}
+
+
+/* ================= SET SELLER HEADER ================= */
+
+document.getElementById("sellerName").innerText = seller;
+
+/* Placeholder seller image */
+
+document.getElementById("sellerImg").src =
+"Images/Clock/Ganesha Image.jpg";
+
+
+/* ================= FILTER PRODUCTS ================= */
+
+const list = PRODUCTS.filter(p => p.seller === seller);
+
+
+/* ================= ADD TO CART ================= */
+
+function addSellerProduct(id){
+const p = PRODUCTS.find(x => x.id === id);
+addToCart(p);
+}
+
+
+/* ================= RENDER PRODUCTS ================= */
+
+const box = document.getElementById("sellerProducts");
+
+if(list.length === 0){
+
+box.innerHTML = "<h3>No products found from this seller</h3>";
+
+}else{
+
+list.forEach(p => {
+
+box.innerHTML += `
+<div class="product-card">
+
+<a href="product.html?id=${p.id}" class="card-link">
+<img src="${p.img}">
+</a>
+
+<h4>
+<a href="product.html?id=${p.id}" class="card-link">
+${p.name}
+</a>
+</h4>
+
+<p>By ${p.seller}</p>
+
+<span class="price">₹${p.price}</span>
+
+<div class="rating">★★★★★</div>
+
+<button onclick="addSellerProduct(${p.id})">
+Add to Cart
+</button>
+
+</div>
+`;
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

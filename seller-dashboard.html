@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Seller Dashboard – CraftNext</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+.dashboard{
+padding:40px 8%;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.products-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+gap:25px;
+}
+
+.product-card{
+background:white;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
+transition:0.3s;
+}
+
+.product-card:hover{
+transform:translateY(-5px);
+}
+
+.product-img{
+width:100%;
+height:200px;
+object-fit:cover;
+}
+
+.product-info{
+padding:15px;
+}
+
+.product-info h4{
+margin-bottom:5px;
+}
+
+.price{
+color:#d97745;
+font-weight:600;
+}
+
+.category{
+font-size:13px;
+color:gray;
+}
+
+.delete-btn{
+margin-top:10px;
+width:100%;
+background:#e63946;
+color:white;
+border:none;
+padding:8px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.delete-btn:hover{
+background:#c1121f;
+}
+
+/* MODAL */
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.modal-box{
+background:white;
+padding:30px;
+width:420px;
+border-radius:12px;
+}
+
+.modal-box input,
+.modal-box textarea,
+.modal-box select{
+width:100%;
+padding:10px;
+margin-bottom:12px;
+border:1px solid #ddd;
+border-radius:6px;
+}
+
+.modal-box button{
+padding:10px 15px;
+margin-right:10px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<header class="navbar">
+
+<a class="brand" href="index.html">CraftNext</a>
+
+<div>
+<a href="index.html">Home</a>
+<a href="#" onclick="logout()">Logout</a>
+</div>
+
+</header>
+
+
+<section class="dashboard">
+
+<div class="topbar">
+
+<h2 id="welcome"></h2>
+
+<button onclick="openModal()">+ Add Product</button>
+
+</div>
+
+<h3>My Products</h3>
+
+<div id="productGrid" class="products-grid"></div>
+
+</section>
+
+
+<!-- ADD PRODUCT MODAL -->
+
+<div class="modal" id="modal">
+
+<div class="modal-box">
+
+<h3>Add New Product</h3>
+
+<input id="pName" placeholder="Product Name">
+
+<textarea id="pDesc" placeholder="Description"></textarea>
+
+<input id="pPrice" type="number" placeholder="Price">
+
+<input id="pStock" type="number" placeholder="Stock" value="10">
+
+<select id="pCategory">
+
+<option value="spiritual">Spiritual</option>
+<option value="clock">Clock</option>
+<option value="lippan">Lippan</option>
+<option value="diya">Diya</option>
+<option value="zharokha">Zharokha</option>
+
+</select>
+
+<input type="file" id="pImgFile" accept="image/*">
+
+<button onclick="saveProduct()">Add Product</button>
+<button onclick="closeModal()">Cancel</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* AUTH CHECK */
+
+const user = JSON.parse(localStorage.getItem("cn_user"));
+
+if(!user || user.role !== "seller"){
+alert("Seller login required");
+window.location.href="login.html";
+}
+
+document.getElementById("welcome").innerText =
+"Welcome, " + user.name;
+
+
+/* LOGOUT */
+
+function logout(){
+
+localStorage.removeItem("cn_user");
+localStorage.removeItem("cn_token");
+
+window.location.href="login.html";
+
+}
+
+
+/* MODAL */
+
+function openModal(){
+document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){
+document.getElementById("modal").style.display="none";
+}
+
+
+/* SAVE PRODUCT */
+
+async function saveProduct(){
+
+const name = document.getElementById("pName").value;
+const description = document.getElementById("pDesc").value;
+const price = document.getElementById("pPrice").value;
+const stock = document.getElementById("pStock").value;
+const category = document.getElementById("pCategory").value;
+const image = document.getElementById("pImgFile").files[0];
+
+if(!name || !price || !category){
+alert("Please fill required fields");
+return;
+}
+
+const formData = new FormData();
+
+formData.append("name",name);
+formData.append("description",description);
+formData.append("price",price);
+formData.append("stock",stock);
+formData.append("category",category);
+
+if(image){
+formData.append("image",image);
+}
+
+const token = localStorage.getItem("cn_token");
+
+await fetch("http://localhost:5000/api/products",{
+
+method:"POST",
+
+headers:{
+Authorization:`Bearer ${token}`
+},
+
+body:formData
+
+});
+
+closeModal();
+
+loadProducts();
+
+}
+
+
+/* DELETE PRODUCT */
+
+async function deleteProduct(id){
+
+if(!confirm("Remove this product?")) return;
+
+const token = localStorage.getItem("cn_token");
+
+await fetch(`http://localhost:5000/api/products/${id}`,{
+
+method:"DELETE",
+
+headers:{
+Authorization:`Bearer ${token}`
+}
+
+});
+
+loadProducts();
+
+}
+
+
+/* LOAD SELLER PRODUCTS */
+
+async function loadProducts(){
+
+const res = await fetch("http://localhost:5000/api/products");
+
+const products = await res.json();
+
+const grid = document.getElementById("productGrid");
+
+grid.innerHTML="";
+
+products.forEach(p=>{
+
+if(p.sellerName !== user.name && p.sellerName !== user.shopName) return;
+
+grid.innerHTML += `
+
+<div class="product-card">
+
+<img src="http://localhost:5000${p.img}?t=${Date.now()}" class="product-img">
+
+<div class="product-info">
+
+<h4>${p.name}</h4>
+
+<p class="category">${p.category}</p>
+
+<p class="price">₹${p.price}</p>
+
+<button class="delete-btn" onclick="deleteProduct('${p._id}')">
+Remove
+</button>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+loadProducts();
+
+</script>
+
+</body>
+</html>

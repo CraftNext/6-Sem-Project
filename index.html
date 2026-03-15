@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CraftNext – Handmade Marketplace</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header>
+<nav class="navbar">
+
+<a class="brand" href="index.html">CraftNext</a>
+
+<div class="nav-links">
+
+<a href="index.html">Home</a>
+<a href="#categories">Categories</a>
+<a href="sell.html">Sell</a>
+
+<a href="login.html" id="loginBtn">Login</a>
+<a href="#" id="logoutBtn" style="display:none;">Logout</a>
+
+<a href="cart.html">Cart 🛒</a>
+<a href="wishlist.html">Wishlist ❤️</a>
+
+</div>
+
+</nav>
+</header>
+
+
+<!-- HERO -->
+<section class="hero">
+
+<div class="hero-content">
+
+<h1>Discover Unique Handmade Products</h1>
+<p>Support small creators & artisans worldwide</p>
+
+<button onclick="location.href='#categories'">Start Shopping</button>
+
+</div>
+
+</section>
+
+
+<!-- CATEGORIES -->
+<section id="categories" class="categories">
+
+<h2>Shop by Category</h2>
+
+<div class="category-grid">
+
+<div class="category-card" onclick="openCategory('spiritual')">
+<img src="Images/Spritual Image/Krishna1.jpeg">
+<h3>Spiritual</h3>
+</div>
+
+<div class="category-card" onclick="openCategory('clock')">
+<img src="Images/Clock/Clock.jpeg">
+<h3>Clock</h3>
+</div>
+
+<div class="category-card" onclick="openCategory('lippan')">
+<img src="Images/Lippan Art/best1.jpeg">
+<h3>Lippan Art</h3>
+</div>
+
+<div class="category-card" onclick="openCategory('diya')">
+<img src="Images/Diya Art/1.jpeg">
+<h3>Diya Art</h3>
+</div>
+
+<div class="category-card" onclick="openCategory('zharokha')">
+<img src="Images/Zharokha Art/1.jpeg">
+<h3>Zharokha Art</h3>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- FEATURED PRODUCTS -->
+<section class="products">
+
+<h2>Featured Products</h2>
+
+<div class="product-grid" id="productContainer"></div>
+
+</section>
+
+
+<!-- NEW COMERS -->
+<section class="products">
+
+<h2>New Comers</h2>
+
+<div class="product-grid" id="newProducts"></div>
+
+</section>
+
+
+<!-- SELLER SPOTLIGHT -->
+<section class="seller">
+
+<h2>Top Seller of the Week</h2>
+
+<div class="seller-card">
+
+<img src="Images/Clock/Ganesha Image.jpg">
+
+<div>
+
+<h3>Archana Rana</h3>
+
+<p>Valsad, Gujarat</p>
+
+<p>Specialized in handcrafted jewelry with over 5,000 happy customers.</p>
+
+<div class="rating">★★★★★ 5.0/5.0</div>
+
+<p>Mo. No. +91 9876543210</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- NEWSLETTER -->
+<section class="newsletter">
+
+<h2>Get Weekly Handmade Picks</h2>
+
+<p>Subscribe for exclusive deals</p>
+
+<input type="email" placeholder="Enter your email">
+<button>Subscribe</button>
+
+</section>
+
+
+<div class="floating-cart" onclick="location.href='cart.html'">
+
+🛒 <span id="cartCount">0</span>
+
+</div>
+
+
+<!-- FOOTER -->
+<footer>
+
+<div class="footer-grid">
+
+<div>
+<h4>About</h4>
+<a href="#">Company</a>
+<a href="#">Careers</a>
+<a href="#">Press</a>
+</div>
+
+<div>
+<h4>Help</h4>
+<a href="#">Support</a>
+<a href="#">Shipping</a>
+<a href="#">Returns</a>
+</div>
+
+<div>
+<h4>Sell</h4>
+<a href="#">Start Selling</a>
+<a href="#">Seller Guide</a>
+</div>
+
+<div>
+<h4>Follow</h4>
+<a href="#">Instagram</a>
+<a href="#">Twitter</a>
+<a href="#">Facebook</a>
+</div>
+
+</div>
+
+<p class="copyright">
+© 2026 CraftNext. All rights reserved.
+</p>
+
+</footer>
+
+
+<!-- CATEGORY NAVIGATION -->
+<script>
+
+function openCategory(cat){
+window.location.href = "collection.html?cat=" + cat;
+}
+
+</script>
+
+
+<script src="products.js"></script>
+<script src="script.js"></script>
+
+
+<!-- LOGIN / LOGOUT CONTROL -->
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+const token = localStorage.getItem("cn_token");
+
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+if(token){
+loginBtn.style.display = "none";
+logoutBtn.style.display = "inline";
+}
+
+logoutBtn.addEventListener("click", function(){
+
+localStorage.removeItem("cn_token");
+
+alert("Logged out successfully");
+
+window.location.reload();
+
+});
+
+});
+
+</script>
+
+
+<!-- FEATURED PRODUCTS -->
+<script>
+
+const grid = document.getElementById("productContainer");
+
+function renderProducts(list){
+
+grid.innerHTML="";
+
+list.forEach(p => {
+
+const stars =
+"★".repeat(Math.round(p.rating || 5)) +
+"☆".repeat(5 - Math.round(p.rating || 5));
+
+grid.innerHTML += `
+
+<div class="product-card">
+
+<span class="wish" data-id="${p.id}">♥</span>
+
+<a href="product.html?id=${p.id}" class="card-link">
+<img src="${p.img}">
+</a>
+
+<h4>
+<a href="product.html?id=${p.id}">
+${p.name}
+</a>
+</h4>
+
+<p>
+By <a href="seller.html?seller=${encodeURIComponent(p.seller)}">
+${p.seller}
+</a>
+</p>
+
+<div class="rating">${stars}</div>
+
+<span class="price">₹${p.price}</span>
+
+<button onclick="addToCart(PRODUCTS.find(x=>x.id===${p.id}))">
+Add to Cart
+</button>
+
+</div>
+
+`;
+
+});
+
+renderWishlistIcons();
+
+}
+
+renderProducts(PRODUCTS);
+
+</script>
+
+
+<!-- NEW COMERS -->
+<script>
+
+async function loadNewProducts(){
+
+const res = await fetch("http://localhost:5000/api/products");
+const products = await res.json();
+
+const grid = document.getElementById("newProducts");
+
+grid.innerHTML="";
+
+products.forEach(p => {
+
+grid.innerHTML += `
+
+<div class="product-card">
+
+<a href="product.html?id=${p._id}">
+<img src="http://localhost:5000${p.img}?t=${Date.now()}">
+</a>
+
+<h4>
+<a href="product.html?id=${p._id}">
+${p.name}
+</a>
+</h4>
+
+<p>By ${p.sellerName}</p>
+
+<span class="price">₹${p.price}</span>
+
+<button onclick="addToCart({
+name:'${p.name}',
+price:${p.price},
+img:'http://localhost:5000${p.img}'
+})">
+Add to Cart
+</button>
+
+</div>
+
+`;
+
+});
+
+}
+
+loadNewProducts();
+
+</script>
+
+
+</body>
+</html>

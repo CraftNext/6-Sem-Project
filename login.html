@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login – CraftNext</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fdf8f3 0%, #fde8d8 100%);
+  padding: 40px 20px;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  width: 100%;
+  max-width: 460px;
+  overflow: hidden;
+}
+
+.auth-header {
+  background: linear-gradient(135deg, #e86a33, #ff9f68);
+  padding: 32px 36px 28px;
+  color: white;
+}
+
+.auth-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.auth-header p {
+  opacity: 0.85;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ROLE TABS */
+.role-tabs {
+  display: flex;
+  background: rgba(0,0,0,0.1);
+  border-radius: 30px;
+  padding: 4px;
+  margin-top: 18px;
+  gap: 4px;
+}
+
+.role-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 24px;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.role-tab.active {
+  background: white;
+  color: #e86a33;
+  font-weight: 600;
+}
+
+/* FORM BODY */
+.auth-body {
+  padding: 32px 36px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 7px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fafafa;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #e86a33;
+  box-shadow: 0 0 0 3px rgba(232,106,51,0.12);
+  background: white;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* SELLER EXTRA FIELDS */
+.seller-fields {
+  display: none;
+}
+
+.seller-fields.show {
+  display: block;
+}
+
+/* SUBMIT BUTTON */
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #e86a33, #d95a25);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 6px;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(232,106,51,0.35);
+}
+
+.auth-btn:active {
+  transform: translateY(0);
+}
+
+/* TOGGLE */
+.auth-toggle {
+  text-align: center;
+  margin-top: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #666;
+}
+
+.auth-toggle a {
+  color: #e86a33;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.auth-toggle a:hover {
+  text-decoration: underline;
+}
+
+/* DIVIDER */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: #aaa;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+/* ERROR / SUCCESS */
+.msg {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.msg.error {
+  background: #fff0f0;
+  color: #c0392b;
+  border: 1px solid #f5c6c6;
+}
+
+.msg.success {
+  background: #f0fff4;
+  color: #27ae60;
+  border: 1px solid #b8e8c8;
+}
+
+/* SPINNER */
+.auth-btn .spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ADMIN BADGE */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* FORGOT PASSWORD */
+.forgot-link {
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 16px;
+}
+
+.forgot-link a {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #e86a33;
+  text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <nav class="navbar">
+    <a class="brand" href="index.html">CraftNext</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="cart.html">Cart 🛒</a>
+    </div>
+  </nav>
+</header>
+
+
+<div class="auth-page">
+<div class="auth-card">
+
+  <!-- HEADER -->
+  <div class="auth-header">
+    <h2 id="authTitle">Welcome Back</h2>
+    <p id="authSubtitle">Sign in to your CraftNext account</p>
+
+    <div class="role-tabs" id="roleTabs">
+      <button class="role-tab active" onclick="setRole('buyer')">🛍️ Buyer</button>
+      <button class="role-tab" onclick="setRole('seller')">🎨 Seller</button>
+      <button class="role-tab" onclick="setRole('admin')">⚙️ Admin</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="auth-body">
+
+    <div class="msg error" id="errorMsg"></div>
+    <div class="msg success" id="successMsg"></div>
+
+    <form id="authForm" onsubmit="handleSubmit(event)">
+
+      <!-- REGISTER-ONLY: Name -->
+      <div class="form-group" id="nameGroup" style="display:none">
+        <label>Full Name</label>
+        <input type="text" id="nameInput" placeholder="Your full name">
+      </div>
+
+      <!-- EMAIL -->
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="emailInput" placeholder="you@example.com" required>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="passwordInput" placeholder="Minimum 6 characters" required>
+      </div>
+
+      <!-- FORGOT (login only) -->
+      <div class="forgot-link" id="forgotLink">
+        <a href="#">Forgot password?</a>
+      </div>
+
+      <!-- SELLER EXTRA FIELDS (register only) -->
+      <div class="seller-fields" id="sellerFields">
+        <div class="form-group">
+          <label>Shop Name</label>
+          <input type="text" id="shopNameInput" placeholder="Your artisan shop name">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="locationInput" placeholder="City, State">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="phoneInput" placeholder="+91 XXXXX XXXXX">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Shop Description</label>
+          <input type="text" id="shopDescInput" placeholder="Brief description of your work">
+        </div>
+      </div>
+
+      <button type="submit" class="auth-btn" id="submitBtn">
+        Sign In
+      </button>
+
+    </form>
+
+    <div class="divider" id="toggleDivider">or</div>
+
+    <div class="auth-toggle" id="authToggle">
+      Don't have an account? <a onclick="toggleMode()">Create one</a>
+    </div>
+
+  </div><!-- /auth-body -->
+
+</div><!-- /auth-card -->
+</div><!-- /auth-page -->
+
+
+<script>
+/* =============================================
+   CraftNext — Frontend API Helper
+   All calls to the backend go through here
+   ============================================= */
+
+const API_BASE = "http://localhost:5000/api";
+
+/* ——— AUTH HELPERS ——— */
+
+function getToken() {
+  return localStorage.getItem("cn_token");
+}
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem("cn_user")) || null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAuth(data) {
+  localStorage.setItem("cn_token", data.token);
+  localStorage.setItem("cn_user", JSON.stringify(data));
+}
+
+function clearAuth() {
+  localStorage.removeItem("cn_token");
+  localStorage.removeItem("cn_user");
+}
+
+function isLoggedIn() {
+  return !!getToken();
+}
+
+function isRole(role) {
+  const u = getUser();
+  return u && u.role === role;
+}
+
+/* ——— GENERIC FETCH WRAPPER ——— */
+
+async function apiRequest(endpoint, method = "GET", body = null, auth = false) {
+  const headers = { "Content-Type": "application/json" };
+
+  if (auth) {
+    const token = getToken();
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const options = { method, headers };
+  if (body) options.body = JSON.stringify(body);
+
+  const res = await fetch(API_BASE + endpoint, options);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.message || "Request failed");
+  return data;
+}
+
+/* ——— AUTH ——— */
+
+const Auth = {
+  register: (payload) => apiRequest("/auth/register", "POST", payload),
+  login: (email, password) => apiRequest("/auth/login", "POST", { email, password }),
+  me: () => apiRequest("/auth/me", "GET", null, true),
+  updateProfile: (payload) => apiRequest("/auth/profile", "PUT", payload, true),
+  logout() {
+    clearAuth();
+    window.location.href = "login.html";
+  },
+};
+
+/* ——— PRODUCTS ——— */
+
+const Products = {
+  getAll: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/products${q ? "?" + q : ""}`);
+  },
+  getById: (id) => apiRequest(`/products/${id}`),
+  create: (payload) => apiRequest("/products", "POST", payload, true),
+  update: (id, payload) => apiRequest(`/products/${id}`, "PUT", payload, true),
+  delete: (id) => apiRequest(`/products/${id}`, "DELETE", null, true),
+};
+
+/* ——— ORDERS ——— */
+
+const Orders = {
+  create: (payload) => apiRequest("/orders", "POST", payload, true),
+  myOrders: () => apiRequest("/orders/myorders", "GET", null, true),
+  sellerOrders: () => apiRequest("/orders/seller", "GET", null, true),
+  getById: (id) => apiRequest(`/orders/${id}`, "GET", null, true),
+  updateStatus: (id, status) => apiRequest(`/orders/${id}/status`, "PUT", { status }, true),
+};
+
+/* ——— ADMIN ——— */
+
+const Admin = {
+  stats: () => apiRequest("/admin/stats", "GET", null, true),
+  users: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/users${q ? "?" + q : ""}`, "GET", null, true);
+  },
+  updateUser: (id, payload) => apiRequest(`/admin/users/${id}`, "PUT", payload, true),
+  deleteUser: (id) => apiRequest(`/admin/users/${id}`, "DELETE", null, true),
+  orders: () => apiRequest("/admin/orders", "GET", null, true),
+  products: () => apiRequest("/admin/products", "GET", null, true),
+  seedAdmin: () => apiRequest("/admin/seed-admin", "POST", null, true),
+};
+
+/* ——— UPDATE NAVBAR BASED ON LOGIN STATE ——— */
+
+function updateNavbar() {
+  const user = getUser();
+  const loginLinks = document.querySelectorAll("a[href='login.html']");
+
+  loginLinks.forEach((link) => {
+    if (user) {
+      link.textContent = user.name.split(" ")[0];
+      link.href = user.role === "admin" ? "admin.html" :
+                  user.role === "seller" ? "seller-dashboard.html" : "profile.html";
+    }
+  });
+
+  // Show/hide sell link for buyers
+  const sellLinks = document.querySelectorAll("a[href='sell.html']");
+  if (user && user.role === "buyer") {
+    sellLinks.forEach(l => l.style.display = "none");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", updateNavbar);
+
+</script>
+<script>
+
+let mode = "login";   // "login" | "register"
+let role = "buyer";   // "buyer" | "seller" | "admin"
+
+/* ——— SET ROLE ——— */
+function setRole(r) {
+  role = r;
+  document.querySelectorAll(".role-tab").forEach((t, i) => {
+    t.classList.toggle("active", ["buyer","seller","admin"][i] === r);
+  });
+
+  const sellerFields = document.getElementById("sellerFields");
+  if (r === "seller" && mode === "register") {
+    sellerFields.classList.add("show");
+  } else {
+    sellerFields.classList.remove("show");
+  }
+
+  // Admin login note
+  const subtitle = document.getElementById("authSubtitle");
+  if (r === "admin") {
+    subtitle.textContent = "Admin portal — restricted access";
+    // Hide register option for admin
+    document.getElementById("toggleDivider").style.display = "none";
+    document.getElementById("authToggle").style.display = "none";
+  } else {
+    subtitle.textContent = mode === "login"
+      ? "Sign in to your CraftNext account"
+      : "Join the CraftNext community";
+    document.getElementById("toggleDivider").style.display = "flex";
+    document.getElementById("authToggle").style.display = "block";
+  }
+}
+
+/* ——— TOGGLE LOGIN / REGISTER ——— */
+function toggleMode() {
+  mode = mode === "login" ? "register" : "login";
+  const isRegister = mode === "register";
+
+  document.getElementById("authTitle").textContent =
+    isRegister ? "Create Account" : "Welcome Back";
+  document.getElementById("authSubtitle").textContent =
+    isRegister ? "Join the CraftNext community" : "Sign in to your CraftNext account";
+
+  document.getElementById("nameGroup").style.display = isRegister ? "block" : "none";
+  document.getElementById("forgotLink").style.display = isRegister ? "none" : "block";
+  document.getElementById("submitBtn").textContent = isRegister ? "Create Account" : "Sign In";
+
+  document.getElementById("authToggle").innerHTML = isRegister
+    ? `Already have an account? <a onclick="toggleMode()">Sign in</a>`
+    : `Don't have an account? <a onclick="toggleMode()">Create one</a>`;
+
+  const sellerFields = document.getElementById("sellerFields");
+  if (role === "seller" && isRegister) {
+    sellerFields.classList.add("show");
+  } else {
+    sellerFields.classList.remove("show");
+  }
+
+  clearMessages();
+}
+
+/* ——— MESSAGES ——— */
+function showError(msg) {
+  const el = document.getElementById("errorMsg");
+  el.textContent = msg;
+  el.style.display = "block";
+  document.getElementById("successMsg").style.display = "none";
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById("successMsg");
+  el.textContent = msg;
+  el.style.display = "block";
+  document.getElementById("errorMsg").style.display = "none";
+}
+
+function clearMessages() {
+  document.getElementById("errorMsg").style.display = "none";
+  document.getElementById("successMsg").style.display = "none";
+}
+
+/* ——— SUBMIT ——— */
+async function handleSubmit(e) {
+  e.preventDefault();
+  clearMessages();
+
+  const btn = document.getElementById("submitBtn");
+  btn.innerHTML = `<span class="spinner"></span> Please wait...`;
+  btn.disabled = true;
+
+  const email = document.getElementById("emailInput").value.trim();
+  const password = document.getElementById("passwordInput").value;
+
+  try {
+    let data;
+
+    if (mode === "login") {
+      data = await Auth.login(email, password);
+
+      // Verify role matches selected tab
+      if (role === "admin" && data.role !== "admin") {
+        throw new Error("Access denied. This account is not an admin.");
+      }
+      if (role === "seller" && data.role !== "seller" && data.role !== "admin") {
+        throw new Error("This account is not a seller account.");
+      }
+
+      saveAuth(data);
+      showSuccess("Login successful! Redirecting...");
+
+      setTimeout(() => {
+        if (data.role === "admin") {
+          window.location.href = "admin.html";
+        } else if (data.role === "seller") {
+          window.location.href = "seller-dashboard.html";
+        } else {
+          window.location.href = "index.html";
+        }
+      }, 800);
+
+    } else {
+      // REGISTER
+      const name = document.getElementById("nameInput").value.trim();
+      if (!name) { showError("Please enter your name."); return; }
+      if (password.length < 6) { showError("Password must be at least 6 characters."); return; }
+
+      const payload = { name, email, password, role };
+
+      if (role === "seller") {
+        payload.shopName = document.getElementById("shopNameInput").value.trim();
+        payload.location = document.getElementById("locationInput").value.trim();
+        payload.phone = document.getElementById("phoneInput").value.trim();
+        payload.shopDescription = document.getElementById("shopDescInput").value.trim();
+      }
+
+      data = await Auth.register(payload);
+      saveAuth(data);
+      showSuccess("Account created! Redirecting...");
+
+      setTimeout(() => {
+        if (data.role === "seller") {
+          window.location.href = "seller-dashboard.html";
+        } else {
+          window.location.href = "index.html";
+        }
+      }, 800);
+    }
+
+  } catch (err) {
+    showError(err.message || "Something went wrong. Please try again.");
+  } finally {
+    btn.innerHTML = mode === "login" ? "Sign In" : "Create Account";
+    btn.disabled = false;
+  }
+}
+
+/* ——— REDIRECT IF ALREADY LOGGED IN ——— */
+const existingUser = getUser();
+if (existingUser) {
+  if (existingUser.role === "admin") location.href = "admin.html";
+  else if (existingUser.role === "seller") location.href = "seller-dashboard.html";
+  else location.href = "index.html";
+}
+
+</script>
+</body>
+</html>

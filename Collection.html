@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Collection – CraftNext</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <a class="brand" href="index.html">CraftNext</a>
+
+    <div>
+        <a href="index.html">← Back to Home</a>
+        <span id="navUser"></span>
+    </div>
+</header>
+
+
+<section>
+    <h2 id="collectionTitle">Collection</h2>
+    <div class="product-grid" id="productContainer"></div>
+</section>
+
+
+<!-- Floating Cart -->
+<div class="floating-cart" onclick="location.href='cart.html'">
+    🛒 <span id="cartCount">0</span>
+</div>
+
+
+<script src="api.js"></script>
+<script src="script.js"></script>
+
+<script>
+
+/* ================= NAVBAR AUTH ================= */
+
+const navUser = document.getElementById("navUser");
+
+const user = localStorage.getItem("cn_user")
+    ? JSON.parse(localStorage.getItem("cn_user"))
+    : null;
+
+if(user){
+
+    navUser.innerHTML = `
+        <span style="margin-left:10px;">Hi, ${user.name}</span>
+        <a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
+    `;
+
+    document.getElementById("logoutBtn").onclick = function(e){
+        e.preventDefault();
+        Auth.logout();
+    };
+
+}else{
+
+    navUser.innerHTML = `
+        <a href="login.html" style="margin-left:10px;">Login</a>
+    `;
+}
+
+
+/* ========= PRODUCT DATABASE ========= */
+
+const products = [
+{
+name: "Krishna Painting",
+price: 499,
+category: "spiritual",
+img: "Images/Spritual Image/Krishna1.jpeg",
+seller: "Archana Rana"
+},
+
+{
+name: "Mandala Clock",
+price: 499,
+category: "clock",
+img: "Images/Clock/Clock.jpeg",
+seller: "Archana Rana"
+},
+
+{
+name: "Lippan Mandala",
+price: 499,
+category: "lippan",
+img: "Images/Lippan Art/best1.jpeg",
+seller: "Archana Rana"
+},
+
+{
+name: "Diya Art Frame",
+price: 499,
+category: "diya",
+img: "Images/Diya Art/1.jpeg",
+seller: "Archana Rana"
+},
+
+{
+name: "Zharokha Art",
+price: 199,
+category: "zharokha",
+img: "Images/Zharokha Art/1.jpeg",
+seller: "Archana Rana"
+}
+];
+
+
+/* ========= GET CATEGORY FROM URL ========= */
+
+const params = new URLSearchParams(window.location.search);
+const cat = params.get("cat");
+
+
+/* ========= SET TITLE ========= */
+
+const titleEl = document.getElementById("collectionTitle");
+
+if (cat) {
+    titleEl.innerText =
+        cat.charAt(0).toUpperCase() + cat.slice(1) + " Collection";
+} else {
+    titleEl.innerText = "All Products";
+}
+
+
+/* ========= FILTER PRODUCTS ========= */
+
+const filtered = cat
+    ? products.filter(p => p.category === cat)
+    : products;
+
+
+/* ========= ADD TO CART ========= */
+
+function addProductByIndex(i) {
+    addToCart(filtered[i]);
+}
+
+
+/* ========= RENDER PRODUCTS ========= */
+
+const container = document.getElementById("productContainer");
+
+filtered.forEach((p, i) => {
+
+container.innerHTML += `
+<div class="product-card">
+
+<a href="product.html?id=${i}" class="card-link">
+<img src="${p.img}">
+</a>
+
+<h4>
+<a href="product.html?id=${i}" class="card-link">
+${p.name}
+</a>
+</h4>
+
+<p>
+By 
+<a href="seller.html?seller=${encodeURIComponent(p.seller)}"
+class="seller-link">
+${p.seller}
+</a>
+</p>
+
+<span class="price">₹${p.price}</span>
+
+<div class="rating">★★★★★</div>
+
+<span class="badge">Best Seller</span>
+
+<button onclick="addProductByIndex(${i})">
+Add to Cart
+</button>
+
+</div>
+`;
+
+});
+
+</script>
+
+</body>
+</html>

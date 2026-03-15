@@ -1,0 +1,268 @@
+<!-- this is product.html -->
+ <!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Product Detail – CraftNext</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* PRODUCT PAGE */
+
+.product-page{
+padding:60px 8%;
+}
+
+/* MAIN LAYOUT */
+
+.product-container{
+display:flex;
+align-items:flex-start;
+gap:100px;
+max-width:1500px;
+margin:auto;
+}
+
+/* IMAGE */
+
+.product-left{
+flex:1.3;
+}
+
+.product-left img{
+width:100%;
+max-width:750px;
+border-radius:12px;
+}
+
+/* DETAILS */
+
+.product-right{
+flex:1;
+max-width:450px;
+}
+
+.product-right h1{
+font-size:36px;
+margin-bottom:8px;
+}
+
+.rating{
+color:#f5a623;
+margin:8px 0;
+}
+
+.price{
+font-size:28px;
+font-weight:bold;
+color:#d97745;
+margin:10px 0;
+}
+
+/* QUANTITY */
+
+.qty-box{
+display:flex;
+align-items:center;
+gap:12px;
+margin:20px 0;
+}
+
+.qty-box button{
+padding:6px 14px;
+font-size:18px;
+cursor:pointer;
+}
+
+/* BUTTONS */
+
+.product-buttons{
+display:flex;
+gap:15px;
+margin-top:10px;
+}
+
+.cart-btn{
+background:black;
+color:white;
+padding:14px 28px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.buy-btn{
+background:#d97745;
+color:white;
+padding:14px 28px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<header class="navbar">
+<a class="brand" href="index.html">CraftNext</a>
+
+<div>
+<a href="index.html" class="back-btn">← Back</a>
+<span id="navUser"></span>
+</div>
+
+</header>
+
+
+<section class="product-page">
+
+<div class="product-container">
+
+<!-- IMAGE -->
+
+<div class="product-left">
+<img id="productImage">
+</div>
+
+
+<!-- DETAILS -->
+
+<div class="product-right">
+
+<h1 id="productName"></h1>
+
+<p>By <span id="productSeller"></span></p>
+
+<div id="productRating" class="rating"></div>
+
+<div id="productPrice" class="price"></div>
+
+<p id="productDesc"></p>
+
+
+<div class="qty-box">
+<button id="minus">-</button>
+<span id="qty">1</span>
+<button id="plus">+</button>
+</div>
+
+
+<div class="product-buttons">
+<button id="addCartBtn" class="cart-btn">Add to Cart</button>
+<button class="buy-btn" onclick="location.href='checkout.html'">Buy Now</button>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<script src="api.js"></script>
+<script src="products.js"></script>
+<script src="script.js"></script>
+
+
+<script>
+
+/* ================= NAVBAR AUTH ================= */
+
+const navUser = document.getElementById("navUser");
+
+const user = localStorage.getItem("cn_user")
+? JSON.parse(localStorage.getItem("cn_user"))
+: null;
+
+if(user){
+
+navUser.innerHTML = `
+<span style="margin-left:10px;">Hi, ${user.name}</span>
+<a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
+`;
+
+document.getElementById("logoutBtn").onclick = function(e){
+e.preventDefault();
+Auth.logout();
+};
+
+}else{
+
+navUser.innerHTML = `
+<a href="login.html" style="margin-left:10px;">Login</a>
+`;
+
+}
+
+
+/* ================= GET PRODUCT ================= */
+
+const params = new URLSearchParams(window.location.search);
+const id = Number(params.get("id"));
+
+const product = PRODUCTS.find(p => p.id === id);
+
+/* SAFETY */
+
+if(!product){
+document.body.innerHTML = "<h2 style='padding:40px'>Product not found</h2>";
+throw new Error("Invalid product");
+}
+
+
+/* ================= DISPLAY PRODUCT ================= */
+
+document.getElementById("productImage").src = product.img;
+document.getElementById("productName").innerText = product.name;
+document.getElementById("productSeller").innerText = product.seller;
+document.getElementById("productPrice").innerText = "₹" + product.price;
+document.getElementById("productDesc").innerText = product.description;
+
+
+/* ================= RATING ================= */
+
+const stars =
+"★".repeat(product.rating || 5) +
+"☆".repeat(5 - (product.rating || 5));
+
+document.getElementById("productRating").innerText = stars;
+
+
+/* ================= QUANTITY ================= */
+
+let qty = 1;
+
+document.getElementById("plus").onclick = () => {
+qty++;
+document.getElementById("qty").innerText = qty;
+};
+
+document.getElementById("minus").onclick = () => {
+if(qty > 1){
+qty--;
+document.getElementById("qty").innerText = qty;
+}
+};
+
+
+/* ================= ADD TO CART ================= */
+
+document.getElementById("addCartBtn").addEventListener("click", () => {
+
+for (let i = 0; i < qty; i++) {
+addToCart(product);
+}
+
+});
+
+</script>
+
+</body>
+</html>

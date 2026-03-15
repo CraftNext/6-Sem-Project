@@ -1,0 +1,189 @@
+<!-- this is sell.html -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sell Your Art - CraftNext</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+/* SELL PAGE */
+
+.sell-page{
+padding:60px 8%;
+display:flex;
+justify-content:center;
+}
+
+/* FORM BOX */
+
+.sell-box{
+background:white;
+padding:40px;
+width:500px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+.sell-box h2{
+text-align:center;
+margin-bottom:25px;
+}
+
+/* INPUTS */
+
+.sell-box input,
+.sell-box textarea,
+.sell-box select{
+width:100%;
+padding:12px;
+margin-bottom:15px;
+border-radius:6px;
+border:1px solid #ccc;
+font-size:14px;
+}
+
+/* TEXTAREA */
+
+.sell-box textarea{
+resize:none;
+height:100px;
+}
+
+/* BUTTON */
+
+.sell-btn{
+width:100%;
+padding:14px;
+background:#d97745;
+border:none;
+color:white;
+font-size:16px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.sell-btn:hover{
+background:#c56535;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<header class="navbar">
+<a class="brand" href="index.html">CraftNext</a>
+
+<div>
+<a href="index.html" class="back-btn">← Back to Home</a>
+<span id="navUser"></span>
+</div>
+
+</header>
+
+
+<section class="sell-page">
+
+<div class="sell-box">
+
+<h2>Sell Your Artwork 🎨</h2>
+
+<form id="sellForm">
+
+<input type="text" placeholder="Artwork Title">
+
+<input type="text" placeholder="Artist Name">
+
+<input type="number" placeholder="Price (₹)">
+
+<select>
+<option>Select Category</option>
+<option>Painting</option>
+<option>Lippan Art</option>
+<option>Mandala</option>
+<option>Wall Decor</option>
+<option>Handmade Crafts</option>
+</select>
+
+<textarea placeholder="Artwork Description"></textarea>
+
+<input type="file">
+
+<button class="sell-btn">List Artwork</button>
+
+</form>
+
+</div>
+
+</section>
+
+
+<script src="api.js"></script>
+
+<script>
+
+/* ================= LOGIN / ROLE GUARD ================= */
+
+const user = localStorage.getItem("cn_user")
+? JSON.parse(localStorage.getItem("cn_user"))
+: null;
+
+if(!user){
+alert("Please login first");
+window.location.href="login.html";
+}
+
+if(user && user.role === "seller"){
+window.location.href="seller-dashboard.html";
+}
+
+if(user && user.role === "admin"){
+window.location.href="admin.html";
+}
+
+
+/* ================= NAVBAR AUTH ================= */
+
+const navUser = document.getElementById("navUser");
+
+if(user){
+
+navUser.innerHTML = `
+<span style="margin-left:10px;">Hi, ${user.name}</span>
+<a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
+`;
+
+document.getElementById("logoutBtn").onclick = function(e){
+e.preventDefault();
+Auth.logout();
+};
+
+}else{
+
+navUser.innerHTML = `
+<a href="login.html" style="margin-left:10px;">Login</a>
+`;
+
+}
+
+
+/* ================= TEMP FORM BEHAVIOR ================= */
+
+document.getElementById("sellForm").addEventListener("submit", function(e){
+
+e.preventDefault();
+
+alert("To sell products, please register as a Seller.");
+
+window.location.href = "login.html";
+
+});
+
+</script>
+
+</body>
+</html>
