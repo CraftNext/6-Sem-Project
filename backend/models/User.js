@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
     phone: { type: String },
     avatar: { type: String, default: "" },
 
+    otp: String,
+    otpExpiry: Date,
+    isVerified: { type: Boolean, default: false },
+
     // Buyer-specific fields
     address: { type: String },
     city: { type: String },

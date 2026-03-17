@@ -23,24 +23,29 @@ router.post("/register", async (req, res) => {
     // Prevent self-registration as admin
     const safeRole = role === "admin" ? "buyer" : (role || "buyer");
 
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role: safeRole,
-      shopName,
-      shopDescription,
-      location,
-      phone,
-    });
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+    const user = await User.create({
+    name,
+    email,
+    password,
+    role: safeRole,
+    shopName,
+    shopDescription,
+    location,
+    phone,
+    otp,
+    otpExpiry: Date.now() + 5 * 60 * 1000, // 5 min
+    isVerified: false,
+    });
+    console.log("OTP is:", otp);
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
       shopName: user.shopName,
-      token: generateToken(user._id),
+      message: "OTP sent to email. Please verify.",
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -56,8 +61,10 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-
-    if (!user.isActive) {
+    if (!user.isVerified) {
+    return res.status(401).json({ message: "Please verify your email first" });
+    }
+    if (user.isActive === false) {
       return res.status(403).json({ message: "Account suspended. Contact support." });
     }
 
@@ -117,5 +124,31 @@ router.put("/profile", protect, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+// @POST /api/auth/verify-otp
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
 
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp || user.otpExpiry < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpiry = null;
+
+    await user.save();
+
+    res.json({ message: "Email verified successfully" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 module.exports = router;
