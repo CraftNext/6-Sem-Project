@@ -724,7 +724,6 @@ document.addEventListener("DOMContentLoaded", updateNavbar);
 /* ——— GUARD ——— */
 const adminUser = getUser();
 if (!adminUser || adminUser.role !== "admin") {
-  alert("Access denied. Admin only.");
   window.location.href = "login.html";
 }
 

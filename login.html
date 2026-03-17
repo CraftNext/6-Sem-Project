@@ -313,7 +313,10 @@
         <label>Password</label>
         <input type="password" id="passwordInput" placeholder="Minimum 6 characters" required>
       </div>
-
+      <div class="form-group" id="otpGroup" style="display:none">
+  <label>Enter OTP</label>
+  <input type="text" id="otpInput" placeholder="Enter 6-digit OTP">
+</div>
       <!-- FORGOT (login only) -->
       <div class="forgot-link" id="forgotLink">
         <a href="#">Forgot password?</a>
@@ -577,12 +580,29 @@ function clearMessages() {
   document.getElementById("errorMsg").style.display = "none";
   document.getElementById("successMsg").style.display = "none";
 }
-
+function showOtpInput() {
+  document.getElementById("otpGroup").style.display = "block";
+  document.getElementById("submitBtn").textContent = "Verify OTP";
+  mode = "verify";
+}
 /* ——— SUBMIT ——— */
 async function handleSubmit(e) {
   e.preventDefault();
   clearMessages();
+  if (mode === "verify") {
+  const otp = document.getElementById("otpInput").value;
+  const email = localStorage.getItem("verify_email");
 
+  await apiRequest("/auth/verify-otp", "POST", { email, otp });
+
+  showSuccess("Verified! Now login.");
+  localStorage.removeItem("verify_email");
+  mode = "login";
+  document.getElementById("otpGroup").style.display = "none";
+  document.getElementById("submitBtn").textContent = "Sign In";
+
+  return;
+}
   const btn = document.getElementById("submitBtn");
   btn.innerHTML = `<span class="spinner"></span> Please wait...`;
   btn.disabled = true;
@@ -608,14 +628,14 @@ async function handleSubmit(e) {
       showSuccess("Login successful! Redirecting...");
 
       setTimeout(() => {
-        if (data.role === "admin") {
-          window.location.href = "admin.html";
-        } else if (data.role === "seller") {
-          window.location.href = "seller-dashboard.html";
-        } else {
-          window.location.href = "index.html";
-        }
-      }, 800);
+  if (data.role === "admin") {
+    window.location.href = "admin.html";
+  } else if (data.role === "seller") {
+    window.location.href = "seller-dashboard.html";
+  } else {
+    window.location.href = "index.html";
+  }
+}, 800);
 
     } else {
       // REGISTER
@@ -633,16 +653,15 @@ async function handleSubmit(e) {
       }
 
       data = await Auth.register(payload);
-      saveAuth(data);
-      showSuccess("Account created! Redirecting...");
+showSuccess("OTP sent to your email. Please verify.");
 
-      setTimeout(() => {
-        if (data.role === "seller") {
-          window.location.href = "seller-dashboard.html";
-        } else {
-          window.location.href = "index.html";
-        }
-      }, 800);
+// store email temporarily
+localStorage.setItem("verify_email", email);
+
+// switch to verify mode (we'll add UI next)
+showOtpInput();
+
+      
     }
 
   } catch (err) {
@@ -655,10 +674,8 @@ async function handleSubmit(e) {
 
 /* ——— REDIRECT IF ALREADY LOGGED IN ——— */
 const existingUser = getUser();
-if (existingUser) {
-  if (existingUser.role === "admin") location.href = "admin.html";
-  else if (existingUser.role === "seller") location.href = "seller-dashboard.html";
-  else location.href = "index.html";
+if (existingUser && window.location.pathname.includes("login.html")) {
+  console.log("User already logged in");
 }
 
 </script>
