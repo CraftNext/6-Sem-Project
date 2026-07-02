@@ -36,13 +36,25 @@ const userSchema = new mongoose.Schema(
     otpExpiry: Date,
     isVerified: { type: Boolean, default: false },
 
+    resetToken: String,
+    resetTokenExpiry: Date,
+
     // Buyer-specific fields
     address: { type: String },
     city: { type: String },
     pincode: { type: String },
 
+    addresses: [{
+      label: { type: String, default: "Home" },
+      name: String,
+      phone: String,
+      address: String,
+      city: String,
+      pincode: String,
+    }],
+
     isActive: { type: Boolean, default: true },
-    wishlist: [{ type: Number }], // product IDs
+    wishlist: [{ type: mongoose.Schema.Types.Mixed }], // numeric IDs (static) or ObjectId strings (DB)
   },
   { timestamps: true }
 );

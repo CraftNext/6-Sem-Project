@@ -24,6 +24,23 @@ const protect = async (req, res, next) => {
   }
 };
 
+// Populates req.user if a valid token is present, but never blocks the
+// request — used by routes that support both guest and logged-in flows
+// (e.g. checkout).
+const optionalProtect = async (req, res, next) => {
+  const auth = req.headers.authorization;
+  if (auth && auth.startsWith("Bearer")) {
+    try {
+      const token = auth.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select("-password");
+    } catch (error) {
+      // invalid/expired token on an optional route — proceed as guest
+    }
+  }
+  next();
+};
+
 // Admin only
 const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
@@ -42,4 +59,4 @@ const sellerOrAdmin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, adminOnly, sellerOrAdmin };
+module.exports = { protect, adminOnly, sellerOrAdmin, optionalProtect };

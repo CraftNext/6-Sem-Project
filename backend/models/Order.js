@@ -27,6 +27,9 @@ const orderSchema = new mongoose.Schema(
       pincode: String,
     },
 
+    shippingFee: { type: Number, default: 0 },
+    couponCode: { type: String },
+    discountAmount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
 
     status: {
@@ -38,8 +41,16 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: { type: String, default: "COD" },
     isPaid: { type: Boolean, default: false },
     paidAt: Date,
+
+    // Client-generated, one per checkout attempt — lets a retried/double-submitted
+    // request return the original order instead of creating (and re-charging) a duplicate.
+    idempotencyKey: { type: String },
   },
   { timestamps: true }
 );
+
+orderSchema.index({ buyer: 1 });
+orderSchema.index({ "items.seller": 1 });
+orderSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model("Order", orderSchema);

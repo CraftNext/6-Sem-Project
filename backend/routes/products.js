@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
+const Review = require("../models/Review");
+const User = require("../models/User");
 const { protect, sellerOrAdmin, adminOnly } = require("../middleware/auth");
+const { body, validationResult } = require("express-validator");
 
 const multer = require("multer");
 const path = require("path");
@@ -33,7 +36,20 @@ const storage = multer.diskStorage({
 
 });
 
-const upload = multer({ storage });
+// Accept images only, cap at 5 MB — uploads are served statically, so reject anything executable.
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(jpe?g|png|webp|gif|avif)$/.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      const err = new Error("Only image files are allowed");
+      err.status = 400;
+      cb(err);
+    }
+  },
+});
 
 
 /* ================= GET PRODUCTS ================= */
@@ -44,24 +60,96 @@ router.get("/", async (req, res) => {
 
     const { category, search, seller } = req.query;
 
-    const filter = { isActive: true };
+    // isApproved: { $ne: false } treats missing (pre-approval-feature) products
+    // as approved, and hides only products explicitly awaiting/denied approval.
+    const filter = { isActive: true, isApproved: { $ne: false } };
 
     if (category) filter.category = category;
 
     if (seller) filter.seller = seller;
 
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { sellerName: { $regex: search, $options: "i" } },
-      ];
+      // Uses the text index on name/description/sellerName instead of a
+      // full-collection regex scan.
+      filter.$text = { $search: search };
     }
 
     const products = await Product.find(filter).sort({ createdAt: -1 });
 
     res.json(products);
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+/* ================= TOP SELLER ================= */
+
+// @GET /api/products/top-seller — public. Ranked by average product rating
+// (weighted by review count as a tiebreaker) among sellers with active listings.
+router.get("/top-seller", async (req, res) => {
+  try {
+    const agg = await Product.aggregate([
+      { $match: { isActive: true, seller: { $ne: null } } },
+      {
+        $group: {
+          _id: "$seller",
+          avgRating: { $avg: "$rating" },
+          totalReviews: { $sum: "$numReviews" },
+          productCount: { $sum: 1 },
+        },
+      },
+      { $sort: { avgRating: -1, totalReviews: -1 } },
+      { $limit: 1 },
+    ]);
+
+    if (!agg.length) return res.json(null);
+
+    const seller = await User.findById(agg[0]._id).select("name shopName location phone avatar shopDescription");
+    if (!seller) return res.json(null);
+
+    res.json({
+      name: seller.shopName || seller.name,
+      location: seller.location || "",
+      phone: seller.phone || "",
+      avatar: seller.avatar || "",
+      description: seller.shopDescription || "",
+      rating: Math.round((agg[0].avgRating || 5) * 10) / 10,
+      numReviews: agg[0].totalReviews || 0,
+      productCount: agg[0].productCount,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+/* ================= CATEGORY IMAGES ================= */
+
+// @GET /api/products/category-images — public. Returns { category: imgUrl }
+// for every category that has a product marked isCategoryImage. Categories
+// with no marked product are simply absent — frontend keeps its default art.
+router.get("/category-images", async (req, res) => {
+  try {
+    const marked = await Product.find({ isCategoryImage: true, isActive: true }).select("category img");
+    const map = {};
+    marked.forEach((p) => { map[p.category] = p.img; });
+    res.json(map);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+/* ================= MY PRODUCTS ================= */
+
+// @GET /api/products/mine — seller/admin, own listings regardless of
+// approval/active status (the public "/" route hides pending ones).
+router.get("/mine", protect, sellerOrAdmin, async (req, res) => {
+  try {
+    const products = await Product.find({ seller: req.user._id }).sort({ createdAt: -1 });
+    res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -98,10 +186,20 @@ router.post(
   protect,
   sellerOrAdmin,
   upload.single("image"),
+  [
+    body("name").trim().notEmpty().withMessage("Product name is required"),
+    body("price").isFloat({ gt: 0 }).withMessage("Price must be greater than 0"),
+    body("category").isIn(["spiritual", "clock", "lippan", "diya", "zharokha", "other"]).withMessage("Invalid category"),
+    body("stock").optional({ values: "falsy" }).isInt({ min: 0 }).withMessage("Stock cannot be negative"),
+  ],
   async (req, res) => {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ message: errors.array()[0].msg });
+      }
 
-      const { name, description, price, category, stock } = req.body;
+      const { name, description, price, category, stock, bestSeller, newArrival, isCategoryImage } = req.body;
 
       let imagePath = "";
 
@@ -119,6 +217,11 @@ router.post(
         stock: stock || 10,
         seller: req.user._id,
         sellerName: req.user.shopName || req.user.name,
+        ...(bestSeller !== undefined && { bestSeller: bestSeller === "true" }),
+        ...(newArrival !== undefined && { newArrival: newArrival === "true" }),
+        ...(isCategoryImage !== undefined && { isCategoryImage: isCategoryImage === "true" }),
+        // Admin-added products are self-approved; seller-added ones wait for review.
+        isApproved: req.user.role === "admin",
       });
 
       res.status(201).json(product);
@@ -184,6 +287,56 @@ router.delete("/:id", protect, sellerOrAdmin, async (req, res) => {
 
     res.json({ message: "Product removed" });
 
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+/* ================= REVIEWS ================= */
+
+// @GET /api/products/:id/reviews — public
+router.get("/:id/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find({ product: req.params.id }).sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @POST /api/products/:id/reviews — logged-in users; one review each (upsert)
+router.post("/:id/reviews", protect, async (req, res) => {
+  try {
+    const rating = parseInt(req.body.rating, 10);
+    if (!(rating >= 1 && rating <= 5)) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    await Review.findOneAndUpdate(
+      { product: product._id, user: req.user._id },
+      {
+        product: product._id,
+        user: req.user._id,
+        name: req.user.name,
+        rating,
+        comment: (req.body.comment || "").trim(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    // Recompute the product's aggregate rating
+    const reviews = await Review.find({ product: product._id });
+    product.numReviews = reviews.length;
+    product.rating = reviews.length
+      ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
+      : 5;
+    await product.save();
+
+    res.status(201).json({ rating: product.rating, numReviews: product.numReviews });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -6,17 +6,28 @@ const Order = require("../models/Order");
 const { protect, adminOnly } = require("../middleware/auth");
 
 
-// Seed admin account (public — only used once)
+// Seed first admin account. Gated by SEED_SECRET so it cannot be called by the public.
+// Usage (once): POST /api/admin/seed-admin { secret, name, email, password }
 router.post("/seed-admin", async (req, res) => {
   try {
+    if (!process.env.SEED_SECRET || req.body.secret !== process.env.SEED_SECRET) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     const exists = await User.findOne({ role: "admin" });
     if (exists) return res.status(400).json({ message: "Admin already exists" });
 
+    const { name, email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "email and password are required" });
+    }
+
     const admin = await User.create({
-      name: "Admin",
-      email: "admin@craftnext.com",
-      password: "admin123",
+      name: name || "Admin",
+      email,
+      password,
       role: "admin",
+      isVerified: true,
     });
 
     res.json({ message: "Admin created", email: admin.email });
@@ -33,48 +44,61 @@ router.use(protect, adminOnly);
 // @GET /api/admin/stats
 router.get("/stats", async (req, res) => {
   try {
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+    // Every number here comes from a count or an aggregation — never a full
+    // Order.find() pulled into memory, so this stays cheap as orders grow.
     const [
       totalUsers,
       totalBuyers,
       totalSellers,
       totalProducts,
       totalOrders,
-      orders,
+      pendingOrders,
+      deliveredOrders,
+      revenueAgg,
+      monthlyAgg,
+      categoryData,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: "buyer" }),
       User.countDocuments({ role: "seller" }),
       Product.countDocuments({ isActive: true }),
       Order.countDocuments(),
-      Order.find().select("totalAmount status createdAt items"),
+      Order.countDocuments({ status: "pending" }),
+      Order.countDocuments({ status: "delivered" }),
+      Order.aggregate([{ $group: { _id: null, total: { $sum: "$totalAmount" } } }]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: sixMonthsAgo } } },
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            total: { $sum: "$totalAmount" },
+          },
+        },
+      ]),
+      Product.aggregate([
+        { $match: { isActive: true } },
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+      ]),
     ]);
 
-    const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalRevenue = revenueAgg[0]?.total || 0;
 
-    const pendingOrders = orders.filter((o) => o.status === "pending").length;
-    const deliveredOrders = orders.filter((o) => o.status === "delivered").length;
-
+    // Zero-filled last-6-months scaffold, then overlay the aggregation results.
     const monthlyRevenue = {};
-    const now = new Date();
-
+    const monthKeys = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
       monthlyRevenue[key] = 0;
+      monthKeys.push({ year: d.getFullYear(), month: d.getMonth() + 1, key });
     }
-
-    orders.forEach((o) => {
-      const d = new Date(o.createdAt);
-      const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
-      if (monthlyRevenue[key] !== undefined) {
-        monthlyRevenue[key] += o.totalAmount;
-      }
+    monthlyAgg.forEach((m) => {
+      const match = monthKeys.find((mk) => mk.year === m._id.year && mk.month === m._id.month);
+      if (match) monthlyRevenue[match.key] = m.total;
     });
-
-    const categoryData = await Product.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: "$category", count: { $sum: 1 } } },
-    ]);
 
     res.json({
       totalUsers,
@@ -99,6 +123,8 @@ router.get("/stats", async (req, res) => {
 router.get("/users", async (req, res) => {
   try {
     const { role, search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
 
     const filter = {};
 
@@ -111,11 +137,16 @@ router.get("/users", async (req, res) => {
       ];
     }
 
-    const users = await User.find(filter)
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const [users, total] = await Promise.all([
+      User.find(filter)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      User.countDocuments(filter),
+    ]);
 
-    res.json(users);
+    res.json({ items: users, total, page, pages: Math.max(1, Math.ceil(total / limit)) });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -166,12 +197,15 @@ router.delete("/users/:id", async (req, res) => {
 // @GET /api/admin/orders
 router.get("/orders", async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
 
-    const orders = await Order.find()
-      .sort({ createdAt: -1 })
-      .limit(100);
+    const [orders, total] = await Promise.all([
+      Order.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
+      Order.countDocuments(),
+    ]);
 
-    res.json(orders);
+    res.json({ items: orders, total, page, pages: Math.max(1, Math.ceil(total / limit)) });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -182,11 +216,15 @@ router.get("/orders", async (req, res) => {
 // @GET /api/admin/products
 router.get("/products", async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
 
-    const products = await Product.find()
-      .sort({ createdAt: -1 });
+    const [products, total] = await Promise.all([
+      Product.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
+      Product.countDocuments(),
+    ]);
 
-    res.json(products);
+    res.json({ items: products, total, page, pages: Math.max(1, Math.ceil(total / limit)) });
 
   } catch (err) {
     res.status(500).json({ message: err.message });
