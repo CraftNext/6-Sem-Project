@@ -27,7 +27,8 @@
 
 <!-- Floating Cart -->
 <div class="floating-cart" onclick="location.href='cart.html'">
-    🛒 <span id="cartCount">0</span>
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
+    <span id="cartCount">0</span>
 </div>
 
 
@@ -48,6 +49,7 @@ if(user){
 
     navUser.innerHTML = `
         <span style="margin-left:10px;">Hi, ${user.name}</span>
+        ${user.role === "admin" ? '<a href="admin.html" style="margin-left:10px;">Admin Panel</a>' : ""}
         <a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
     `;
 
@@ -64,124 +66,41 @@ if(user){
 }
 
 
-/* ========= PRODUCT DATABASE ========= */
-
-const products = [
-{
-name: "Krishna Painting",
-price: 499,
-category: "spiritual",
-img: "Images/Spritual Image/Krishna1.jpeg",
-seller: "Archana Rana"
-},
-
-{
-name: "Mandala Clock",
-price: 499,
-category: "clock",
-img: "Images/Clock/Clock.jpeg",
-seller: "Archana Rana"
-},
-
-{
-name: "Lippan Mandala",
-price: 499,
-category: "lippan",
-img: "Images/Lippan Art/best1.jpeg",
-seller: "Archana Rana"
-},
-
-{
-name: "Diya Art Frame",
-price: 499,
-category: "diya",
-img: "Images/Diya Art/1.jpeg",
-seller: "Archana Rana"
-},
-
-{
-name: "Zharokha Art",
-price: 199,
-category: "zharokha",
-img: "Images/Zharokha Art/1.jpeg",
-seller: "Archana Rana"
-}
-];
-
-
-/* ========= GET CATEGORY FROM URL ========= */
+/* ========= LOAD CATEGORY FROM API ========= */
 
 const params = new URLSearchParams(window.location.search);
 const cat = params.get("cat");
 
-
-/* ========= SET TITLE ========= */
-
 const titleEl = document.getElementById("collectionTitle");
-
-if (cat) {
-    titleEl.innerText =
-        cat.charAt(0).toUpperCase() + cat.slice(1) + " Collection";
-} else {
-    titleEl.innerText = "All Products";
-}
-
-
-/* ========= FILTER PRODUCTS ========= */
-
-const filtered = cat
-    ? products.filter(p => p.category === cat)
-    : products;
-
-
-/* ========= ADD TO CART ========= */
-
-function addProductByIndex(i) {
-    addToCart(filtered[i]);
-}
-
-
-/* ========= RENDER PRODUCTS ========= */
+titleEl.innerText = cat
+    ? cat.charAt(0).toUpperCase() + cat.slice(1) + " Collection"
+    : "All Products";
 
 const container = document.getElementById("productContainer");
 
-filtered.forEach((p, i) => {
+(async () => {
+    container.innerHTML = `<p style="padding:20px;color:#888">Loading…</p>`;
+    try {
+        const products = await Products.getAll(cat ? { category: cat } : {});
+        cacheProducts(products);
 
-container.innerHTML += `
-<div class="product-card">
+        if (!products.length) {
+            container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No products in this category yet.</p></div>`;
+            return;
+        }
 
-<a href="product.html?id=${i}" class="card-link">
-<img src="${p.img}">
-</a>
-
-<h4>
-<a href="product.html?id=${i}" class="card-link">
-${p.name}
-</a>
-</h4>
-
-<p>
-By 
-<a href="seller.html?seller=${encodeURIComponent(p.seller)}"
-class="seller-link">
-${p.seller}
-</a>
-</p>
-
-<span class="price">₹${p.price}</span>
-
-<div class="rating">★★★★★</div>
-
-<span class="badge">Best Seller</span>
-
-<button onclick="addProductByIndex(${i})">
-Add to Cart
-</button>
-
-</div>
-`;
-
-});
+        container.innerHTML = "";
+        products.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = productCardHTML(p);
+            container.appendChild(card);
+        });
+        renderWishlistIcons();
+    } catch (err) {
+        container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load products. Make sure the backend is running.</p></div>`;
+    }
+})();
 
 </script>
 

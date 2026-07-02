@@ -9,112 +9,166 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
+/* .dashboard/.topbar/.products-grid/.product-card/.product-img/.product-info/
+   .price/.category/.delete-btn all live in style.css — only the modal,
+   tabs, and orders table are page-specific. */
 
-.dashboard{
-padding:40px 8%;
+.tabs { display: flex; gap: 6px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
+
+.tab-btn {
+  padding: 10px 4px;
+  margin-right: 20px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
 }
 
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:30px;
+.tab-btn.active, .tab-btn:hover { color: var(--ink); border-color: var(--ink); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.product-card-actions { display: flex; gap: 8px; margin-top: 10px; }
+.product-card-actions button { flex: 1; margin-top: 0; }
+
+.edit-btn {
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.edit-btn:hover { background: var(--surface-2); }
+
+.data-table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  overflow-x: auto;
 }
 
-.products-grid{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
-gap:25px;
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+th {
+  background: var(--bg);
+  padding: 11px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--line);
 }
 
-.product-card{
-background:white;
-border-radius:12px;
-overflow:hidden;
-box-shadow:0 4px 15px rgba(0,0,0,0.1);
-transition:0.3s;
+td { padding: 13px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+
+.status-badge {
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
-.product-card:hover{
-transform:translateY(-5px);
+.status-pending   { background: var(--warn-soft); color: var(--warn); }
+.status-confirmed { background: var(--ok-soft); color: var(--ok); }
+.status-shipped   { background: var(--info-soft); color: var(--info); }
+.status-delivered { background: var(--ok-soft); color: var(--ok); }
+.status-cancelled { background: var(--danger-soft); color: var(--danger); }
+
+.status-select {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  font: inherit;
+  cursor: pointer;
+  background: var(--surface);
 }
 
-.product-img{
-width:100%;
-height:200px;
-object-fit:cover;
-}
-
-.product-info{
-padding:15px;
-}
-
-.product-info h4{
-margin-bottom:5px;
-}
-
-.price{
-color:#d97745;
-font-weight:600;
-}
-
-.category{
-font-size:13px;
-color:gray;
-}
-
-.delete-btn{
-margin-top:10px;
-width:100%;
-background:#e63946;
-color:white;
-border:none;
-padding:8px;
-border-radius:6px;
-cursor:pointer;
-}
-
-.delete-btn:hover{
-background:#c1121f;
-}
-
-/* MODAL */
+.loader { text-align: center; padding: 36px; color: var(--muted); font-size: 14px; }
 
 .modal{
 position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
+inset:0;
+background:rgba(27,24,16,0.45);
 display:none;
 justify-content:center;
 align-items:center;
+z-index:1000;
 }
 
 .modal-box{
-background:white;
-padding:30px;
+background:var(--surface);
+border:1px solid var(--line);
+padding:28px;
 width:420px;
-border-radius:12px;
+max-width:90vw;
+border-radius:var(--radius-lg);
+}
+
+.modal-box h3{
+font-size:18px;
+margin-bottom:16px;
 }
 
 .modal-box input,
 .modal-box textarea,
 .modal-box select{
 width:100%;
-padding:10px;
+padding:10px 12px;
 margin-bottom:12px;
-border:1px solid #ddd;
-border-radius:6px;
+border:1px solid var(--line);
+border-radius:var(--radius-sm);
+font:inherit;
+font-size:14px;
+background:var(--surface);
+}
+
+.modal-box input:focus,
+.modal-box textarea:focus,
+.modal-box select:focus{
+outline:none;
+border-color:var(--accent);
+box-shadow:var(--ring);
 }
 
 .modal-box button{
-padding:10px 15px;
+padding:10px 18px;
 margin-right:10px;
+border:none;
+border-radius:var(--radius-sm);
+font:inherit;
+font-weight:600;
 cursor:pointer;
+background:var(--ink);
+color:#fff;
+transition:background .15s;
 }
 
+.modal-box button:hover{ background:var(--accent-dark); }
+
+.modal-box button:last-child{
+background:transparent;
+color:var(--text);
+border:1px solid var(--line);
+}
+
+.modal-box button:last-child:hover{ background:var(--surface-2); }
 </style>
 
 </head>
@@ -128,7 +182,7 @@ cursor:pointer;
 
 <div>
 <a href="index.html">Home</a>
-<a href="#" onclick="logout()">Logout</a>
+<a href="#" onclick="Auth.logout()">Logout</a>
 </div>
 
 </header>
@@ -140,24 +194,49 @@ cursor:pointer;
 
 <h2 id="welcome"></h2>
 
-<button onclick="openModal()">+ Add Product</button>
+<button onclick="openAddModal()">+ Add Product</button>
 
 </div>
 
-<h3>My Products</h3>
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('products', this)">My Products</button>
+  <button class="tab-btn" onclick="showTab('orders', this)">Orders</button>
+</div>
 
-<div id="productGrid" class="products-grid"></div>
+<div class="tab-panel active" id="tab-products">
+  <div id="productGrid" class="products-grid"></div>
+</div>
+
+<div class="tab-panel" id="tab-orders">
+  <div class="data-table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Buyer</th>
+          <th>Items (yours)</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody">
+        <tr><td colspan="6" class="loader">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 </section>
 
 
-<!-- ADD PRODUCT MODAL -->
+<!-- ADD / EDIT PRODUCT MODAL -->
 
 <div class="modal" id="modal">
 
 <div class="modal-box">
 
-<h3>Add New Product</h3>
+<h3 id="modalTitle">Add New Product</h3>
 
 <input id="pName" placeholder="Product Name">
 
@@ -178,8 +257,9 @@ cursor:pointer;
 </select>
 
 <input type="file" id="pImgFile" accept="image/*">
+<p id="editImgHint" style="display:none;font-size:12px;color:var(--muted);margin:-6px 0 12px">Image can't be changed here — remove and re-add the product to replace it.</p>
 
-<button onclick="saveProduct()">Add Product</button>
+<button id="saveBtn" onclick="saveProduct()">Add Product</button>
 <button onclick="closeModal()">Cancel</button>
 
 </div>
@@ -187,6 +267,7 @@ cursor:pointer;
 </div>
 
 
+<script src="api.js"></script>
 <script>
 
 /* AUTH CHECK */
@@ -202,21 +283,49 @@ document.getElementById("welcome").innerText =
 "Welcome, " + user.name;
 
 
-/* LOGOUT */
+/* TABS */
 
-function logout(){
-
-localStorage.removeItem("cn_user");
-localStorage.removeItem("cn_token");
-
-window.location.href="login.html";
-
+function showTab(name, btn) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  btn.classList.add("active");
+  if (name === "orders") loadOrders();
 }
 
 
 /* MODAL */
 
-function openModal(){
+let editingId = null;
+
+function openAddModal(){
+editingId = null;
+document.getElementById("modalTitle").textContent = "Add New Product";
+document.getElementById("saveBtn").textContent = "Add Product";
+document.getElementById("pName").value = "";
+document.getElementById("pDesc").value = "";
+document.getElementById("pPrice").value = "";
+document.getElementById("pStock").value = "10";
+document.getElementById("pCategory").value = "spiritual";
+document.getElementById("pImgFile").value = "";
+document.getElementById("pImgFile").style.display = "block";
+document.getElementById("editImgHint").style.display = "none";
+document.getElementById("modal").style.display="flex";
+}
+
+function openEditModal(id){
+const p = productsCache.find(x => x._id === id);
+if (!p) return;
+editingId = p._id;
+document.getElementById("modalTitle").textContent = "Edit Product";
+document.getElementById("saveBtn").textContent = "Save Changes";
+document.getElementById("pName").value = p.name;
+document.getElementById("pDesc").value = p.description || "";
+document.getElementById("pPrice").value = p.price;
+document.getElementById("pStock").value = p.stock;
+document.getElementById("pCategory").value = p.category;
+document.getElementById("pImgFile").style.display = "none";
+document.getElementById("editImgHint").style.display = "block";
 document.getElementById("modal").style.display="flex";
 }
 
@@ -225,7 +334,7 @@ document.getElementById("modal").style.display="none";
 }
 
 
-/* SAVE PRODUCT */
+/* SAVE PRODUCT (add or edit) */
 
 async function saveProduct(){
 
@@ -234,42 +343,37 @@ const description = document.getElementById("pDesc").value;
 const price = document.getElementById("pPrice").value;
 const stock = document.getElementById("pStock").value;
 const category = document.getElementById("pCategory").value;
-const image = document.getElementById("pImgFile").files[0];
 
 if(!name || !price || !category){
 alert("Please fill required fields");
 return;
 }
 
-const formData = new FormData();
+try {
+  if (editingId) {
+    await Products.update(editingId, { name, description, price: Number(price), stock: Number(stock), category });
+  } else {
+    const image = document.getElementById("pImgFile").files[0];
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("price", price);
+    formData.append("stock", stock);
+    formData.append("category", category);
+    if (image) formData.append("image", image);
 
-formData.append("name",name);
-formData.append("description",description);
-formData.append("price",price);
-formData.append("stock",stock);
-formData.append("category",category);
+    await fetch("http://localhost:5000/api/products", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    });
+  }
 
-if(image){
-formData.append("image",image);
+  closeModal();
+  loadProducts();
+} catch (err) {
+  alert(err.message || "Could not save product");
 }
-
-const token = localStorage.getItem("cn_token");
-
-await fetch("http://localhost:5000/api/products",{
-
-method:"POST",
-
-headers:{
-Authorization:`Bearer ${token}`
-},
-
-body:formData
-
-});
-
-closeModal();
-
-loadProducts();
 
 }
 
@@ -280,66 +384,104 @@ async function deleteProduct(id){
 
 if(!confirm("Remove this product?")) return;
 
-const token = localStorage.getItem("cn_token");
-
-await fetch(`http://localhost:5000/api/products/${id}`,{
-
-method:"DELETE",
-
-headers:{
-Authorization:`Bearer ${token}`
+try {
+  await Products.delete(id);
+  loadProducts();
+} catch (err) {
+  alert(err.message || "Could not remove product");
 }
-
-});
-
-loadProducts();
 
 }
 
 
 /* LOAD SELLER PRODUCTS */
 
+let productsCache = [];
+
 async function loadProducts(){
 
-const res = await fetch("http://localhost:5000/api/products");
-
-const products = await res.json();
-
 const grid = document.getElementById("productGrid");
+grid.innerHTML = `<p style="color:var(--muted);padding:20px">Loading…</p>`;
 
-grid.innerHTML="";
+try {
+  productsCache = await Products.mine();
 
-products.forEach(p=>{
+  if (!productsCache.length) {
+    grid.innerHTML = `<div class="empty-state"><p>No products yet. Add your first one!</p></div>`;
+    return;
+  }
 
-if(p.sellerName !== user.name && p.sellerName !== user.shopName) return;
-
-grid.innerHTML += `
-
-<div class="product-card">
-
-<img src="http://localhost:5000${p.img}?t=${Date.now()}" class="product-img">
-
-<div class="product-info">
-
-<h4>${p.name}</h4>
-
-<p class="category">${p.category}</p>
-
-<p class="price">₹${p.price}</p>
-
-<button class="delete-btn" onclick="deleteProduct('${p._id}')">
-Remove
-</button>
-
-</div>
-
-</div>
-
-`;
-
-});
+  grid.innerHTML = productsCache.map(p => `
+    <div class="product-card">
+      <img src="${imgUrl(p.img)}" class="product-img" onerror="this.onerror=null;this.src='Images/placeholder.svg'">
+      <div class="product-info">
+        <h4>${esc(p.name)}</h4>
+        <p class="category">${esc(p.category)}</p>
+        <p class="price">₹${p.price.toLocaleString("en-IN")}</p>
+        <p style="font-size:12px;color:var(--muted)">Stock: ${p.stock}</p>
+        ${p.isApproved === false ? `<p style="font-size:12px;color:var(--warning,#b6832b);font-weight:600">Pending admin approval</p>` : ""}
+        <div class="product-card-actions">
+          <button class="edit-btn" onclick="openEditModal('${p._id}')">Edit</button>
+          <button class="delete-btn" onclick="deleteProduct('${p._id}')">Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+} catch (err) {
+  grid.innerHTML = `<p style="color:var(--danger);padding:20px">Could not load products.</p>`;
+}
 
 }
+
+
+/* LOAD SELLER ORDERS */
+
+async function loadOrders() {
+  const tbody = document.getElementById("ordersTableBody");
+  tbody.innerHTML = `<tr><td colspan="6" class="loader">Loading…</td></tr>`;
+
+  try {
+    const orders = await Orders.sellerOrders();
+
+    if (!orders.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><p>No orders yet.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = orders.map(o => {
+      const mine = o.items.filter(i => i.seller === user._id || i.sellerName === user.shopName || i.sellerName === user.name);
+      const itemsLabel = mine.map(i => `${i.name} × ${i.qty}`).join(", ") || "—";
+      return `
+        <tr>
+          <td><code style="font-size:11px">#${o._id.slice(-6).toUpperCase()}</code></td>
+          <td>${esc(o.buyerName || "Guest")}<br><small style="color:var(--muted)">${esc(o.buyerEmail || "")}</small></td>
+          <td>${esc(itemsLabel)}</td>
+          <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+          <td>${new Date(o.createdAt).toLocaleDateString("en-IN")}</td>
+          <td>
+            <select class="status-select" onchange="updateOrderStatus('${o._id}', this.value)">
+              ${["pending","confirmed","shipped","delivered","cancelled"].map(s =>
+                `<option value="${s}" ${o.status===s?"selected":""}>${s}</option>`
+              ).join("")}
+            </select>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger)">Could not load orders.</td></tr>`;
+  }
+}
+
+async function updateOrderStatus(id, status) {
+  try {
+    await Orders.updateStatus(id, status);
+  } catch (err) {
+    alert(err.message || "Could not update status");
+    loadOrders();
+  }
+}
+
 
 loadProducts();
 

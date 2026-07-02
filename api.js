@@ -3,7 +3,24 @@
    All calls to the backend go through here
    ============================================= */
 
-const API_BASE = "http://localhost:5000/api";
+// Override by setting window.CRAFTNEXT_API_ORIGIN in a <script> tag before this
+// file loads (e.g. for a deployment where the API isn't same-origin/proxied).
+const API_ORIGIN = window.CRAFTNEXT_API_ORIGIN || (
+  ["localhost", "127.0.0.1"].includes(window.location.hostname)
+    ? "http://localhost:5000"
+    : window.location.origin
+);
+const API_BASE = API_ORIGIN + "/api";
+
+/* Resolve a product image to an absolute URL.
+   - uploaded images come back as "/uploads/.." → served by the API origin
+   - seeded/static images are frontend assets like "Images/.." → used as-is */
+function imgUrl(img) {
+  if (!img) return "Images/placeholder.jpg";
+  if (/^https?:\/\//.test(img)) return img;
+  if (img.startsWith("/uploads")) return API_ORIGIN + img;
+  return img;
+}
 
 /* ——— AUTH HELPERS ——— */
 
@@ -54,7 +71,16 @@ async function apiRequest(endpoint, method = "GET", body = null, auth = false) {
   const res = await fetch(API_BASE + endpoint, options);
   const data = await res.json();
 
-  if (!res.ok) throw new Error(data.message || "Request failed");
+  if (!res.ok) {
+    // A previously-valid session died (expired/invalid token) — clear it and
+    // send the user back to login instead of leaving the page half-authed.
+    if (res.status === 401 && auth && getToken() && !location.pathname.endsWith("login.html")) {
+      clearAuth();
+      sessionStorage.setItem("redirect_after_login", location.pathname.split("/").pop() || "index.html");
+      location.href = "login.html?sessionExpired=1";
+    }
+    throw new Error(data.message || "Request failed");
+  }
   return data;
 }
 
@@ -63,8 +89,27 @@ async function apiRequest(endpoint, method = "GET", body = null, auth = false) {
 const Auth = {
   register: (payload) => apiRequest("/auth/register", "POST", payload),
   login: (email, password) => apiRequest("/auth/login", "POST", { email, password }),
+  verifyOTP: (email, otp) => apiRequest("/auth/verify-otp", "POST", { email, otp }),
+  resendOTP: (email) => apiRequest("/auth/resend-otp", "POST", { email }),
   me: () => apiRequest("/auth/me", "GET", null, true),
   updateProfile: (payload) => apiRequest("/auth/profile", "PUT", payload, true),
+  forgotPassword: (email) => apiRequest("/auth/forgot-password", "POST", { email }),
+  resetPassword: (email, token, newPassword) => apiRequest("/auth/reset-password", "POST", { email, token, newPassword }),
+  getAddresses: () => apiRequest("/auth/addresses", "GET", null, true),
+  addAddress: (payload) => apiRequest("/auth/addresses", "POST", payload, true),
+  deleteAddress: (id) => apiRequest(`/auth/addresses/${id}`, "DELETE", null, true),
+  async uploadAvatar(file) {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    const res = await fetch(API_BASE + "/auth/avatar", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${getToken()}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return data;
+  },
   logout() {
     clearAuth();
     window.location.href = "login.html";
@@ -82,6 +127,11 @@ const Products = {
   create: (payload) => apiRequest("/products", "POST", payload, true),
   update: (id, payload) => apiRequest(`/products/${id}`, "PUT", payload, true),
   delete: (id) => apiRequest(`/products/${id}`, "DELETE", null, true),
+  reviews: (id) => apiRequest(`/products/${id}/reviews`),
+  addReview: (id, payload) => apiRequest(`/products/${id}/reviews`, "POST", payload, true),
+  topSeller: () => apiRequest("/products/top-seller"),
+  categoryImages: () => apiRequest("/products/category-images"),
+  mine: () => apiRequest("/products/mine", "GET", null, true),
 };
 
 /* ——— ORDERS ——— */
@@ -92,6 +142,28 @@ const Orders = {
   sellerOrders: () => apiRequest("/orders/seller", "GET", null, true),
   getById: (id) => apiRequest(`/orders/${id}`, "GET", null, true),
   updateStatus: (id, status) => apiRequest(`/orders/${id}/status`, "PUT", { status }, true),
+  cancel: (id) => apiRequest(`/orders/${id}/cancel`, "PUT", null, true),
+};
+
+/* ——— CHAT ASSISTANT ——— */
+
+const Chat = {
+  send: (message, history) => apiRequest("/chat", "POST", { message, history }),
+};
+
+/* ——— NEWSLETTER ——— */
+
+const Newsletter = {
+  subscribe: (email) => apiRequest("/newsletter/subscribe", "POST", { email }),
+};
+
+/* ——— COUPONS ——— */
+
+const Coupons = {
+  validate: (code, subtotal) => apiRequest(`/coupons/validate?code=${encodeURIComponent(code)}&subtotal=${subtotal}`),
+  list: () => apiRequest("/coupons", "GET", null, true),
+  create: (payload) => apiRequest("/coupons", "POST", payload, true),
+  update: (id, payload) => apiRequest(`/coupons/${id}`, "PUT", payload, true),
 };
 
 /* ——— ADMIN ——— */
@@ -104,9 +176,15 @@ const Admin = {
   },
   updateUser: (id, payload) => apiRequest(`/admin/users/${id}`, "PUT", payload, true),
   deleteUser: (id) => apiRequest(`/admin/users/${id}`, "DELETE", null, true),
-  orders: () => apiRequest("/admin/orders", "GET", null, true),
-  products: () => apiRequest("/admin/products", "GET", null, true),
-  seedAdmin: () => apiRequest("/admin/seed-admin", "POST", null, true),
+  orders: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/orders${q ? "?" + q : ""}`, "GET", null, true);
+  },
+  products: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/products${q ? "?" + q : ""}`, "GET", null, true);
+  },
+  seedAdmin: (payload) => apiRequest("/admin/seed-admin", "POST", payload),
 };
 
 /* ——— UPDATE NAVBAR BASED ON LOGIN STATE ——— */

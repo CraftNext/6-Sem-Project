@@ -8,100 +8,27 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
+/* Layout, image, price, qty, and buy/cart button rules live in style.css
+   (.product-page/.product-container/.price/.qty-box/.cart-btn/.buy-btn) —
+   only the reviews section is page-specific. */
 
-/* PRODUCT PAGE */
+.reviews-section{ padding:0 clamp(20px,8vw,8%) 60px; max-width:1240px; margin:auto; }
+.reviews-section h2{ font-size:22px; margin-bottom:6px; }
+.review-summary{ color:var(--muted); margin-bottom:18px; font-size:14px; }
+.review-form{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px; margin-bottom:22px; max-width:560px; }
+.review-form select, .review-form textarea{ width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:12px; font-size:14px; font:inherit; background:var(--surface); }
+.review-form select:focus, .review-form textarea:focus{ outline:none; border-color:var(--accent); box-shadow:var(--ring); }
+.review-form textarea{ resize:vertical; min-height:70px; }
+.review-form button{ background:var(--ink); color:#fff; border:none; padding:10px 20px; border-radius:var(--radius-sm); font:inherit; font-weight:600; cursor:pointer; transition:background .15s; }
+.review-form button:hover{ background:var(--accent-dark); }
+.review-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:12px; max-width:560px; }
+.review-card .who{ font-weight:600; margin-right:8px; }
+.review-card .stars{ color:var(--warn); letter-spacing:1px; }
+.review-card .when{ color:var(--muted); font-size:12px; margin-top:2px; }
+.review-card .text{ margin-top:6px; color:var(--text); }
 
-.product-page{
-padding:60px 8%;
-}
-
-/* MAIN LAYOUT */
-
-.product-container{
-display:flex;
-align-items:flex-start;
-gap:100px;
-max-width:1500px;
-margin:auto;
-}
-
-/* IMAGE */
-
-.product-left{
-flex:1.3;
-}
-
-.product-left img{
-width:100%;
-max-width:750px;
-border-radius:12px;
-}
-
-/* DETAILS */
-
-.product-right{
-flex:1;
-max-width:450px;
-}
-
-.product-right h1{
-font-size:36px;
-margin-bottom:8px;
-}
-
-.rating{
-color:#f5a623;
-margin:8px 0;
-}
-
-.price{
-font-size:28px;
-font-weight:bold;
-color:#d97745;
-margin:10px 0;
-}
-
-/* QUANTITY */
-
-.qty-box{
-display:flex;
-align-items:center;
-gap:12px;
-margin:20px 0;
-}
-
-.qty-box button{
-padding:6px 14px;
-font-size:18px;
-cursor:pointer;
-}
-
-/* BUTTONS */
-
-.product-buttons{
-display:flex;
-gap:15px;
-margin-top:10px;
-}
-
-.cart-btn{
-background:black;
-color:white;
-padding:14px 28px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
-
-.buy-btn{
-background:#d97745;
-color:white;
-padding:14px 28px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
-
+.related-section{ padding:0 clamp(20px,8vw,8%) 20px; max-width:1240px; margin:auto; }
+.related-section h2{ font-size:22px; margin-bottom:18px; }
 </style>
 
 </head>
@@ -156,7 +83,7 @@ cursor:pointer;
 
 <div class="product-buttons">
 <button id="addCartBtn" class="cart-btn">Add to Cart</button>
-<button class="buy-btn" onclick="location.href='checkout.html'">Buy Now</button>
+<button id="buyBtn" class="buy-btn">Buy Now</button>
 </div>
 
 </div>
@@ -166,8 +93,39 @@ cursor:pointer;
 </section>
 
 
+<!-- RELATED PRODUCTS -->
+<section class="related-section" id="relatedSection" style="display:none">
+  <h2>You may also like</h2>
+  <div class="product-grid" id="relatedGrid"></div>
+</section>
+
+
+<!-- REVIEWS -->
+<section class="reviews-section">
+  <h2>Reviews</h2>
+  <div class="review-summary" id="reviewSummary"></div>
+
+  <form class="review-form" id="reviewForm" style="display:none">
+    <select id="reviewRating" aria-label="Your rating">
+      <option value="5">★★★★★ — Excellent</option>
+      <option value="4">★★★★ — Good</option>
+      <option value="3">★★★ — Average</option>
+      <option value="2">★★ — Poor</option>
+      <option value="1">★ — Bad</option>
+    </select>
+    <textarea id="reviewComment" placeholder="Share your thoughts (optional)"></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
+
+  <p id="reviewLoginHint" style="display:none;color:#888">
+    <a href="login.html">Log in</a> to leave a review.
+  </p>
+
+  <div id="reviewList"></div>
+</section>
+
+
 <script src="api.js"></script>
-<script src="products.js"></script>
 <script src="script.js"></script>
 
 
@@ -185,6 +143,7 @@ if(user){
 
 navUser.innerHTML = `
 <span style="margin-left:10px;">Hi, ${user.name}</span>
+${user.role === "admin" ? '<a href="admin.html" style="margin-left:10px;">Admin Panel</a>' : ""}
 <a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
 `;
 
@@ -202,65 +161,151 @@ navUser.innerHTML = `
 }
 
 
-/* ================= GET PRODUCT ================= */
+/* ================= GET PRODUCT FROM API ================= */
 
 const params = new URLSearchParams(window.location.search);
-const id = Number(params.get("id"));
+const id = params.get("id");
 
-const product = PRODUCTS.find(p => p.id === id);
+let product = null;
+let qty = 1;
 
-/* SAFETY */
+async function loadProduct() {
+  if (!id) {
+    document.body.innerHTML = "<h2 style='padding:40px'>Product not found</h2>";
+    return;
+  }
+  try {
+    product = await Products.getById(id);
+  } catch (err) {
+    document.body.innerHTML = "<h2 style='padding:40px'>Product not found</h2>";
+    return;
+  }
 
-if(!product){
-document.body.innerHTML = "<h2 style='padding:40px'>Product not found</h2>";
-throw new Error("Invalid product");
+  const sellerName =
+    product.sellerName ||
+    (product.seller && (product.seller.shopName || product.seller.name)) ||
+    "Seller";
+
+  document.getElementById("productImage").src = imgUrl(product.img);
+  document.getElementById("productImage").alt = product.name;
+  document.getElementById("productName").innerText = product.name;
+  document.getElementById("productSeller").innerText = sellerName;
+  document.getElementById("productPrice").innerText = "₹" + Number(product.price).toLocaleString("en-IN");
+  document.getElementById("productDesc").innerText = product.description || "";
+  document.getElementById("productRating").innerText = starString(product.rating);
+  document.title = product.name + " – CraftNext";
 }
-
-
-/* ================= DISPLAY PRODUCT ================= */
-
-document.getElementById("productImage").src = product.img;
-document.getElementById("productName").innerText = product.name;
-document.getElementById("productSeller").innerText = product.seller;
-document.getElementById("productPrice").innerText = "₹" + product.price;
-document.getElementById("productDesc").innerText = product.description;
-
-
-/* ================= RATING ================= */
-
-const stars =
-"★".repeat(product.rating || 5) +
-"☆".repeat(5 - (product.rating || 5));
-
-document.getElementById("productRating").innerText = stars;
 
 
 /* ================= QUANTITY ================= */
 
-let qty = 1;
-
 document.getElementById("plus").onclick = () => {
-qty++;
-document.getElementById("qty").innerText = qty;
+  qty++;
+  document.getElementById("qty").innerText = qty;
 };
 
 document.getElementById("minus").onclick = () => {
-if(qty > 1){
-qty--;
-document.getElementById("qty").innerText = qty;
-}
+  if (qty > 1) {
+    qty--;
+    document.getElementById("qty").innerText = qty;
+  }
 };
 
 
-/* ================= ADD TO CART ================= */
+/* ================= ADD TO CART / BUY NOW ================= */
 
 document.getElementById("addCartBtn").addEventListener("click", () => {
+  if (!product) return;
+  for (let i = 0; i < qty; i++) addToCart(product);
+});
 
-for (let i = 0; i < qty; i++) {
-addToCart(product);
+document.getElementById("buyBtn").addEventListener("click", () => {
+  if (!product) return;
+  for (let i = 0; i < qty; i++) addToCart(product);
+  window.location.href = "checkout.html";
+});
+
+loadProduct().then(loadRelated);
+
+
+/* ================= RELATED PRODUCTS ================= */
+
+async function loadRelated() {
+  if (!product) return;
+  try {
+    const list = await Products.getAll({ category: product.category });
+    const related = list.filter(p => p._id !== product._id).slice(0, 4);
+
+    if (!related.length) return;
+
+    cacheProducts(related);
+    const grid = document.getElementById("relatedGrid");
+    grid.innerHTML = "";
+    related.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+      card.innerHTML = productCardHTML(p);
+      grid.appendChild(card);
+    });
+    renderWishlistIcons();
+    document.getElementById("relatedSection").style.display = "block";
+  } catch (err) {
+    // Related products are a nice-to-have — fail silently, keep the section hidden.
+  }
 }
 
+
+/* ================= REVIEWS ================= */
+
+async function loadReviews() {
+  const listEl = document.getElementById("reviewList");
+  const summaryEl = document.getElementById("reviewSummary");
+
+  try {
+    const reviews = await Products.reviews(id);
+
+    if (!reviews.length) {
+      summaryEl.textContent = "No reviews yet — be the first!";
+      listEl.innerHTML = "";
+    } else {
+      const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+      summaryEl.textContent =
+        `${avg.toFixed(1)} ★ average · ${reviews.length} review${reviews.length > 1 ? "s" : ""}`;
+      listEl.innerHTML = reviews.map(r => `
+        <div class="review-card">
+          <div><span class="who">${esc(r.name || "User")}</span><span class="stars">${starString(r.rating)}</span></div>
+          <div class="when">${new Date(r.createdAt).toLocaleDateString()}</div>
+          ${r.comment ? `<div class="text">${esc(r.comment)}</div>` : ""}
+        </div>`).join("");
+    }
+  } catch (err) {
+    summaryEl.textContent = "Could not load reviews.";
+  }
+
+  if (isLoggedIn()) {
+    document.getElementById("reviewForm").style.display = "block";
+  } else {
+    document.getElementById("reviewLoginHint").style.display = "block";
+  }
+}
+
+document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const rating = document.getElementById("reviewRating").value;
+  const comment = document.getElementById("reviewComment").value;
+  try {
+    await Products.addReview(id, { rating, comment });
+    showToast("Thanks for your review!", "success");
+    document.getElementById("reviewComment").value = "";
+    await loadReviews();
+    const fresh = await Products.getById(id);   // refresh the rating shown up top
+    document.getElementById("productRating").innerText = starString(fresh.rating);
+  } catch (err) {
+    showToast(err.message || "Could not submit review", "error");
+  }
 });
+
+loadReviews();
 
 </script>
 

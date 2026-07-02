@@ -6,103 +6,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cart – CraftNext</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
 <style>
-.cart-page { padding: 50px 60px; max-width: 1100px; margin: auto; }
+.cart-page { padding: 48px clamp(20px, 6vw, 60px); max-width: 1100px; margin: auto; }
 
-.cart-page h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: 28px;
-  margin-bottom: 30px;
-}
+.cart-page h1 { font-size: 24px; margin-bottom: 26px; }
 
 .cart-layout {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 28px;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
   align-items: start;
 }
 
 /* CART ITEMS */
 .cart-items-box {
-  background: white;
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
 }
 
 .cart-item {
   display: grid;
-  grid-template-columns: 90px 1fr auto;
-  gap: 18px;
+  grid-template-columns: 84px 1fr auto;
+  gap: 16px;
   align-items: center;
-  padding: 18px 0;
-  border-bottom: 1px solid #f5f5f5;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
 }
 
 .cart-item:last-child { border-bottom: none; }
 
 .cart-item-img {
-  width: 90px;
-  height: 90px;
+  width: 84px;
+  height: 84px;
   object-fit: cover;
-  border-radius: 12px;
-  background: #f0f0f0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
 }
 
-.cart-item-info h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 17px;
-  margin-bottom: 5px;
-}
+.cart-item-info h3 { font-size: 15.5px; margin-bottom: 4px; font-weight: 600; }
 
-.cart-item-seller {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  color: #aaa;
-  margin-bottom: 10px;
-}
+.cart-item-seller { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 
-.cart-item-price {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #e86a33;
-}
+.cart-item-price { font-size: 15px; font-weight: 700; color: var(--ink); }
 
 /* QTY BOX */
 .qty-control {
   display: flex;
   align-items: center;
-  gap: 0;
-  border: 1.5px solid #e5e5e5;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   width: fit-content;
   margin-top: 8px;
 }
 
 .qty-control button {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: none;
-  background: #f8f8f8;
-  font-size: 16px;
+  background: var(--surface-2);
+  font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
   padding: 0;
 }
 
-.qty-control button:hover { background: #e86a33; color: white; }
+.qty-control button:hover { background: var(--line-strong); }
 
 .qty-control span {
-  min-width: 36px;
+  min-width: 34px;
   text-align: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
 }
 
@@ -113,137 +92,115 @@
   gap: 10px;
 }
 
-.item-total {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #222;
-}
+.item-total { font-size: 15px; font-weight: 700; color: var(--ink); }
 
 .remove-btn {
+  display: grid;
+  place-items: center;
   background: none;
   border: none;
-  color: #ccc;
-  font-size: 20px;
+  color: var(--muted);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.15s;
   padding: 4px;
 }
 
-.remove-btn:hover { color: #e74c3c; }
+.remove-btn:hover { color: var(--danger); }
 
 /* ORDER SUMMARY SIDEBAR */
 .cart-summary-box {
-  background: white;
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
   position: sticky;
-  top: 100px;
+  top: 90px;
 }
 
-.cart-summary-box h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
-  margin-bottom: 20px;
-}
+.cart-summary-box h2 { font-size: 17px; margin-bottom: 18px; }
 
 .summary-line {
   display: flex;
   justify-content: space-between;
-  font-family: 'Inter', sans-serif;
   font-size: 14px;
-  color: #666;
-  margin-bottom: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
 }
 
-.summary-divider {
-  height: 1px;
-  background: #f0e0d0;
-  margin: 16px 0;
-}
+.summary-divider { height: 1px; background: var(--line); margin: 14px 0; }
 
 .summary-total-line {
   display: flex;
   justify-content: space-between;
-  font-family: 'Playfair Display', serif;
-  font-size: 20px;
+  font-family: var(--font-serif);
+  font-size: 19px;
   font-weight: 700;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
-.summary-total-line span:last-child { color: #e86a33; }
+.summary-total-line span:last-child { color: var(--ink); }
 
 .checkout-btn {
   width: 100%;
-  padding: 15px;
-  background: linear-gradient(135deg, #e86a33, #d95a25);
+  padding: 13px;
+  background: var(--ink);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: var(--radius-sm);
+  font-size: 14.5px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font: inherit;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: background 0.18s;
   margin-bottom: 12px;
 }
 
-.checkout-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(232,106,51,0.35);
-}
+.checkout-btn:hover { background: var(--accent-dark); }
 
 .continue-link {
   display: block;
   text-align: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #888;
+  font-size: 13.5px;
+  color: var(--muted);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.15s;
 }
 
-.continue-link:hover { color: #e86a33; }
+.continue-link:hover { color: var(--ink); }
 
 /* EMPTY CART */
-.empty-cart {
-  text-align: center;
-  padding: 80px 40px;
-  font-family: 'Inter', sans-serif;
-  color: #aaa;
-}
-
-.empty-cart .empty-icon { font-size: 64px; margin-bottom: 16px; }
-.empty-cart h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: #333; margin-bottom: 8px; }
-.empty-cart p { margin-bottom: 24px; }
+.empty-cart { text-align: center; padding: 72px 40px; color: var(--muted); }
+.empty-cart .empty-icon { display: flex; justify-content: center; margin-bottom: 16px; color: var(--line-strong); }
+.empty-cart .empty-icon svg { width: 56px; height: 56px; }
+.empty-cart h3 { font-size: 19px; color: var(--ink); margin-bottom: 8px; }
+.empty-cart p { margin-bottom: 22px; }
 .empty-cart a {
-  padding: 13px 28px;
-  background: #e86a33;
+  padding: 12px 26px;
+  background: var(--ink);
   color: white;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   font-weight: 600;
-  transition: 0.2s;
+  transition: background 0.15s;
 }
+.empty-cart a:hover { background: var(--accent-dark); }
 
 .clear-cart-btn {
   background: none;
   border: none;
-  font-family: 'Inter', sans-serif;
   font-size: 13px;
-  color: #aaa;
+  color: var(--muted);
   cursor: pointer;
   padding: 0;
   margin-top: 8px;
 }
 
-.clear-cart-btn:hover { color: #e74c3c; }
+.clear-cart-btn:hover { color: var(--danger); }
 
 @media (max-width: 850px) {
-  .cart-page { padding: 30px 20px; }
+  .cart-page { padding: 28px 20px; }
   .cart-layout { grid-template-columns: 1fr; }
-  .cart-item { grid-template-columns: 70px 1fr; }
+  .cart-item { grid-template-columns: 64px 1fr; }
   .cart-item-actions { flex-direction: row; align-items: center; grid-column: 1 / -1; }
 }
 </style>
@@ -268,239 +225,8 @@
 </div>
 
 
-<script>
-/* =============================================
-   CraftNext — Frontend API Helper
-   All calls to the backend go through here
-   ============================================= */
-
-const API_BASE = "http://localhost:5000/api";
-
-/* ——— AUTH HELPERS ——— */
-
-function getToken() {
-  return localStorage.getItem("cn_token");
-}
-
-function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem("cn_user")) || null;
-  } catch {
-    return null;
-  }
-}
-
-function saveAuth(data) {
-  localStorage.setItem("cn_token", data.token);
-  localStorage.setItem("cn_user", JSON.stringify(data));
-}
-
-function clearAuth() {
-  localStorage.removeItem("cn_token");
-  localStorage.removeItem("cn_user");
-}
-
-function isLoggedIn() {
-  return !!getToken();
-}
-
-function isRole(role) {
-  const u = getUser();
-  return u && u.role === role;
-}
-
-/* ——— GENERIC FETCH WRAPPER ——— */
-
-async function apiRequest(endpoint, method = "GET", body = null, auth = false) {
-  const headers = { "Content-Type": "application/json" };
-
-  if (auth) {
-    const token = getToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const options = { method, headers };
-  if (body) options.body = JSON.stringify(body);
-
-  const res = await fetch(API_BASE + endpoint, options);
-  const data = await res.json();
-
-  if (!res.ok) throw new Error(data.message || "Request failed");
-  return data;
-}
-
-/* ——— AUTH ——— */
-
-const Auth = {
-  register: (payload) => apiRequest("/auth/register", "POST", payload),
-  login: (email, password) => apiRequest("/auth/login", "POST", { email, password }),
-  me: () => apiRequest("/auth/me", "GET", null, true),
-  updateProfile: (payload) => apiRequest("/auth/profile", "PUT", payload, true),
-  logout() {
-    clearAuth();
-    window.location.href = "login.html";
-  },
-};
-
-/* ——— PRODUCTS ——— */
-
-const Products = {
-  getAll: (params = {}) => {
-    const q = new URLSearchParams(params).toString();
-    return apiRequest(`/products${q ? "?" + q : ""}`);
-  },
-  getById: (id) => apiRequest(`/products/${id}`),
-  create: (payload) => apiRequest("/products", "POST", payload, true),
-  update: (id, payload) => apiRequest(`/products/${id}`, "PUT", payload, true),
-  delete: (id) => apiRequest(`/products/${id}`, "DELETE", null, true),
-};
-
-/* ——— ORDERS ——— */
-
-const Orders = {
-  create: (payload) => apiRequest("/orders", "POST", payload, true),
-  myOrders: () => apiRequest("/orders/myorders", "GET", null, true),
-  sellerOrders: () => apiRequest("/orders/seller", "GET", null, true),
-  getById: (id) => apiRequest(`/orders/${id}`, "GET", null, true),
-  updateStatus: (id, status) => apiRequest(`/orders/${id}/status`, "PUT", { status }, true),
-};
-
-/* ——— ADMIN ——— */
-
-const Admin = {
-  stats: () => apiRequest("/admin/stats", "GET", null, true),
-  users: (params = {}) => {
-    const q = new URLSearchParams(params).toString();
-    return apiRequest(`/admin/users${q ? "?" + q : ""}`, "GET", null, true);
-  },
-  updateUser: (id, payload) => apiRequest(`/admin/users/${id}`, "PUT", payload, true),
-  deleteUser: (id) => apiRequest(`/admin/users/${id}`, "DELETE", null, true),
-  orders: () => apiRequest("/admin/orders", "GET", null, true),
-  products: () => apiRequest("/admin/products", "GET", null, true),
-  seedAdmin: () => apiRequest("/admin/seed-admin", "POST", null, true),
-};
-
-/* ——— UPDATE NAVBAR BASED ON LOGIN STATE ——— */
-
-function updateNavbar() {
-  const user = getUser();
-  const loginLinks = document.querySelectorAll("a[href='login.html']");
-
-  loginLinks.forEach((link) => {
-    if (user) {
-      link.textContent = user.name.split(" ")[0];
-      link.href = user.role === "admin" ? "admin.html" :
-                  user.role === "seller" ? "seller-dashboard.html" : "profile.html";
-    }
-  });
-
-  // Show/hide sell link for buyers
-  const sellLinks = document.querySelectorAll("a[href='sell.html']");
-  if (user && user.role === "buyer") {
-    sellLinks.forEach(l => l.style.display = "none");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", updateNavbar);
-
-</script>
-<script>
-
-const PRODUCTS = [
-{id:0,name:"Krishna Painting",price:499,seller:"Archana Rana",category:"spiritual",img:"Images/Spritual Image/Krishna1.jpeg",images:["Images/Spritual Image/Krishna1.jpeg"],rating:5,bestSeller:true,description:"Beautiful handmade Krishna painting crafted using traditional Indian art techniques. Perfect for spiritual home décor."},
-{id:1,name:"Lippan Art",price:499,seller:"Archana Rana",category:"lippan",img:"Images/Lippan Art/best1.jpeg",images:["Images/Lippan Art/best1.jpeg"],rating:5,isNew:true,description:"Authentic Gujarati Lippan art created with clay and mirrors. Adds a vibrant cultural touch to your home décor."},
-{id:2,name:"Mandala Clock",price:599,seller:"Craft Studio",category:"clock",img:"Images/Clock/Clock.jpeg",images:["Images/Clock/Clock.jpeg"],rating:5,bestSeller:true,description:"Hand-painted mandala wall clock that combines artistic design with functionality."},
-{id:3,name:"Kodi Art",price:499,seller:"Archana Rana",category:"diya",img:"Images/Clock/Shell-Art.jpeg",images:["Images/Clock/Shell-Art.jpeg"],rating:5,isNew:true,description:"Traditional Kodi art made using shells and vibrant colors, ideal for decorative display."},
-{id:4,name:"Decorative Vase",price:499,seller:"Archana Rana",category:"zharokha",img:"Images/Clock/Art-Bottle.jpeg",images:["Images/Clock/Art-Bottle.jpeg"],rating:5,isNew:true,description:"Hand-painted decorative vase with intricate patterns, perfect for modern or traditional interiors."}
-];
-
-</script>
-<script>
-
-/* ================= CART CORE ================= */
-function getCart() {
-    try {
-        const data = JSON.parse(localStorage.getItem("cart")) || [];
-        return Array.isArray(data) ? data : [];
-    } catch { return []; }
-}
-function saveCart(cart) {
-    localStorage.setItem("cart", JSON.stringify(cart));
-}
-function addToCart(product) {
-    if (!product || !product.name || !product.price || !product.img) {
-        console.warn("Invalid product blocked:", product);
-        alert("Product data invalid — not added");
-        return;
-    }
-    const cart = getCart();
-    const found = cart.find(p => p.name === product.name);
-    if (found) {
-        found.qty += 1;
-    } else {
-        cart.push({
-            name: product.name,
-            price: Number(product.price),
-            img: product.img,
-            seller: product.seller || "",
-            qty: 1
-        });
-    }
-    saveCart(cart);
-    updateCartCount();
-    alert("Added to cart!");
-}
-function removeFromCart(name) {
-    const cart = getCart().filter(p => p.name !== name);
-    saveCart(cart);
-    if (typeof renderCart === "function") renderCart();
-    updateCartCount();
-}
-function updateCartCount() {
-    const cart = getCart();
-    const count = cart.reduce((total, item) => total + (Number(item.qty) || 0), 0);
-    const el = document.getElementById("cartCount");
-    if (el) el.innerText = count;
-}
-document.addEventListener("DOMContentLoaded", updateCartCount);
-function getWishlist() {
-    const raw = JSON.parse(localStorage.getItem("wishlist")) || [];
-    return raw.map(Number);
-}
-function saveWishlist(list) {
-    localStorage.setItem("wishlist", JSON.stringify(list));
-}
-function toggleWishlist(id) {
-    let list = getWishlist();
-    if (list.includes(id)) { list = list.filter(x => x !== id); } else { list.push(id); }
-    saveWishlist(list);
-    updateHeartIcons(id);
-}
-function updateHeartIcons(id) {
-    const list = getWishlist();
-    document.querySelectorAll(`.wish[data-id="${id}"]`).forEach(heart => {
-        if (list.includes(id)) { heart.classList.add("active"); } else { heart.classList.remove("active"); }
-    });
-}
-function isWishlisted(id) { return getWishlist().includes(id); }
-function renderWishlistIcons() {
-    const list = getWishlist();
-    document.querySelectorAll(".wish").forEach(el => {
-        const id = Number(el.dataset.id);
-        if (list.includes(id)) { el.classList.add("active"); } else { el.classList.remove("active"); }
-    });
-}
-document.addEventListener("click", function(e) {
-    if (e.target.classList.contains("wish")) {
-        e.preventDefault();
-        e.stopPropagation();
-        const id = Number(e.target.dataset.id);
-        toggleWishlist(id);
-    }
-});
-document.addEventListener("DOMContentLoaded", renderWishlistIcons);
-
-</script>
+<script src="api.js"></script>
+<script src="script.js"></script>
 <script>
 
 function renderCart() {
@@ -510,7 +236,7 @@ function renderCart() {
   if (!cart.length) {
     container.innerHTML = `
       <div class="empty-cart">
-        <div class="empty-icon">🛒</div>
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg></div>
         <h3>Your cart is empty</h3>
         <p>Looks like you haven't added anything yet.</p>
         <a href="index.html">Start Shopping</a>
@@ -527,24 +253,26 @@ function renderCart() {
   const itemsHTML = cart.map((item, idx) => `
     <div class="cart-item">
       <img class="cart-item-img"
-        src="${item.img}"
-        alt="${item.name}"
-        onerror="this.src='https://via.placeholder.com/90'">
+        src="${imgUrl(item.img)}"
+        alt="${esc(item.name)}"
+        onerror="this.onerror=null;this.src='Images/placeholder.svg'">
 
       <div class="cart-item-info">
-        <h3>${item.name}</h3>
-        ${item.seller ? `<div class="cart-item-seller">By ${item.seller}</div>` : ""}
+        <h3>${esc(item.name)}</h3>
+        ${item.seller ? `<div class="cart-item-seller">By ${esc(item.seller)}</div>` : ""}
         <div class="cart-item-price">₹${item.price.toLocaleString("en-IN")}</div>
         <div class="qty-control">
-          <button onclick="changeQty(${idx}, -1)">−</button>
+          <button onclick="changeQty(${idx}, -1)" aria-label="Decrease quantity">−</button>
           <span>${item.qty}</span>
-          <button onclick="changeQty(${idx}, 1)">+</button>
+          <button onclick="changeQty(${idx}, 1)" aria-label="Increase quantity">+</button>
         </div>
       </div>
 
       <div class="cart-item-actions">
         <div class="item-total">₹${(item.price * item.qty).toLocaleString("en-IN")}</div>
-        <button class="remove-btn" onclick="removeItem('${item.name}')" title="Remove">🗑</button>
+        <button class="remove-btn" onclick="removeFromCart('${item.id}')" title="Remove" aria-label="Remove item">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+        </button>
       </div>
     </div>
   `).join("");
@@ -566,9 +294,9 @@ function renderCart() {
         </div>
         <div class="summary-line">
           <span>Shipping</span>
-          <span>${shipping === 0 ? '<span style="color:#2ecc71;font-weight:600">FREE</span>' : "₹" + shipping}</span>
+          <span>${shipping === 0 ? '<span style="color:var(--ok);font-weight:600">FREE</span>' : "₹" + shipping}</span>
         </div>
-        ${shipping > 0 ? `<div style="font-family:Inter,sans-serif;font-size:12px;color:#aaa;margin-bottom:8px">Free shipping on orders above ₹999</div>` : ""}
+        ${shipping > 0 ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Free shipping on orders above ₹999</div>` : ""}
         <div class="summary-divider"></div>
         <div class="summary-total-line">
           <span>Total</span>
@@ -589,11 +317,6 @@ function changeQty(idx, delta) {
   if (cart[idx].qty < 1) cart[idx].qty = 1;
   saveCart(cart);
   updateCartCount();
-  renderCart();
-}
-
-function removeItem(name) {
-  removeFromCart(name);
   renderCart();
 }
 

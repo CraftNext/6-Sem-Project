@@ -26,7 +26,7 @@
 
 <section class="products">
 
-<h2>Your Wishlist ❤️</h2>
+<h2>Your Wishlist</h2>
 
 <div class="product-grid" id="wishGrid"></div>
 
@@ -34,7 +34,6 @@
 
 
 <script src="api.js"></script>
-<script src="products.js"></script>
 <script src="script.js"></script>
 
 
@@ -60,6 +59,7 @@ if(user){
 
 navUser.innerHTML = `
 <span style="margin-left:10px;">Hi, ${user.name}</span>
+${user.role === "admin" ? '<a href="admin.html" style="margin-left:10px;">Admin Panel</a>' : ""}
 <a href="#" id="logoutBtn" style="margin-left:10px;">Logout</a>
 `;
 
@@ -77,65 +77,45 @@ navUser.innerHTML = `
 }
 
 
-/* ================= LOAD WISHLIST ================= */
+/* ================= LOAD WISHLIST FROM API ================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     const ids = getWishlist();
     const grid = document.getElementById("wishGrid");
 
-    if(ids.length === 0){
-        grid.innerHTML = "<h3>Your wishlist is empty ❤️</h3>";
+    if (ids.length === 0) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Your wishlist is empty</h3><p><a href="index.html">Browse products →</a></p></div>`;
         return;
     }
 
-    const list = PRODUCTS.filter(p => ids.includes(p.id));
+    grid.innerHTML = `<p style="padding:20px;color:#888">Loading…</p>`;
 
-    renderWishlistProducts(list);
+    try {
+        const all = await Products.getAll();
+        cacheProducts(all);
+
+        const idSet = new Set(ids.map(String));
+        const list = all.filter(p => idSet.has(String(p._id)));
+
+        if (!list.length) {
+            grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3>Your wishlisted items are no longer available.</h3></div>`;
+            return;
+        }
+
+        grid.innerHTML = "";
+        list.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = productCardHTML(p);
+            grid.appendChild(card);
+        });
+        renderWishlistIcons();
+    } catch (err) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load wishlist. Make sure the backend is running.</p></div>`;
+    }
 
 });
-
-
-/* ================= RENDER ================= */
-
-function renderWishlistProducts(list){
-
-    const grid = document.getElementById("wishGrid");
-
-    grid.innerHTML = "";
-
-    list.forEach(p => {
-
-        const stars =
-            "★".repeat(Math.round(p.rating || 5)) +
-            "☆".repeat(5 - Math.round(p.rating || 5));
-
-        grid.innerHTML += `
-        <div class="product-card">
-
-            <span class="wish active" data-id="${p.id}">♥</span>
-
-            <a href="product.html?id=${p.id}" class="card-link">
-                <img src="${p.img}">
-            </a>
-
-            <h4>${p.name}</h4>
-
-            <p>By ${p.seller}</p>
-
-            <div class="rating">${stars}</div>
-
-            <span class="price">₹${p.price}</span>
-
-            <button onclick="addToCart(PRODUCTS.find(x=>x.id===${p.id}))">
-                Add to Cart
-            </button>
-
-        </div>
-        `;
-    });
-
-}
 
 </script>
 

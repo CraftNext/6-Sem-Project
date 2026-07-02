@@ -23,15 +23,29 @@
 
 <div class="nav-links">
 
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search products...">
+  <button onclick="doSearch()" aria-label="Search">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+  </button>
+</div>
+
 <a href="index.html">Home</a>
 <a href="#categories">Categories</a>
 <a href="sell.html">Sell</a>
 
 <a href="login.html" id="loginBtn">Login</a>
+<a href="admin.html" id="adminPanelBtn" style="display:none;">Admin Panel</a>
 <a href="#" id="logoutBtn" style="display:none;">Logout</a>
 
-<a href="cart.html">Cart 🛒</a>
-<a href="wishlist.html">Wishlist ❤️</a>
+<a href="cart.html">
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
+  Cart
+</a>
+<a href="wishlist.html">
+  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.35-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 5c-2.5 4.65-9.5 9-9.5 9Z"/></svg>
+  Wishlist
+</a>
 
 </div>
 
@@ -44,11 +58,20 @@
 
 <div class="hero-content">
 
-<h1>Discover Unique Handmade Products</h1>
-<p>Support small creators & artisans worldwide</p>
+<h1>Discover unique, handmade products</h1>
+<p>Support small creators and artisans worldwide — every piece is made by hand, not mass-produced.</p>
 
+<div class="hero-actions">
 <button onclick="location.href='#categories'">Start Shopping</button>
+<a href="sell.html" class="btn btn-ghost">Become a Seller</a>
+</div>
 
+</div>
+
+<div class="hero-visual" aria-hidden="true">
+<img src="Images/Lippan Art/best1.jpeg" class="hero-photo hero-photo-1" alt="">
+<img src="Images/Diya Art/1.jpeg" class="hero-photo hero-photo-2" alt="">
+<img src="Images/Zharokha Art/1.jpeg" class="hero-photo hero-photo-3" alt="">
 </div>
 
 </section>
@@ -62,27 +85,27 @@
 <div class="category-grid">
 
 <div class="category-card" onclick="openCategory('spiritual')">
-<img src="Images/Spritual Image/Krishna1.jpeg">
+<img src="Images/Spritual Image/Krishna1.jpeg" data-category="spiritual">
 <h3>Spiritual</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('clock')">
-<img src="Images/Clock/Clock.jpeg">
+<img src="Images/Clock/Clock.jpeg" data-category="clock">
 <h3>Clock</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('lippan')">
-<img src="Images/Lippan Art/best1.jpeg">
+<img src="Images/Lippan Art/best1.jpeg" data-category="lippan">
 <h3>Lippan Art</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('diya')">
-<img src="Images/Diya Art/1.jpeg">
+<img src="Images/Diya Art/1.jpeg" data-category="diya">
 <h3>Diya Art</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('zharokha')">
-<img src="Images/Zharokha Art/1.jpeg">
+<img src="Images/Zharokha Art/1.jpeg" data-category="zharokha">
 <h3>Zharokha Art</h3>
 </div>
 
@@ -112,25 +135,25 @@
 
 
 <!-- SELLER SPOTLIGHT -->
-<section class="seller">
+<section class="seller" id="sellerSpotlight" style="display:none">
 
 <h2>Top Seller of the Week</h2>
 
 <div class="seller-card">
 
-<img src="Images/Clock/Ganesha Image.jpg">
+<img id="spotlightAvatar" src="Images/Clock/Ganesha Image.jpg">
 
 <div>
 
-<h3>Archana Rana</h3>
+<h3 id="spotlightName"></h3>
 
-<p>Valsad, Gujarat</p>
+<p id="spotlightLocation"></p>
 
-<p>Specialized in handcrafted jewelry with over 5,000 happy customers.</p>
+<p id="spotlightDescription"></p>
 
-<div class="rating">★★★★★ 5.0/5.0</div>
+<div class="rating" id="spotlightRating"></div>
 
-<p>Mo. No. +91 9876543210</p>
+<p id="spotlightPhone"></p>
 
 </div>
 
@@ -146,15 +169,19 @@
 
 <p>Subscribe for exclusive deals</p>
 
-<input type="email" placeholder="Enter your email">
-<button>Subscribe</button>
+<form id="newsletterForm" onsubmit="return subscribeNewsletter(event)">
+  <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+  <button type="submit">Subscribe</button>
+</form>
+<p id="newsletterMsg" style="display:none;font-size:13px;margin-top:10px"></p>
 
 </section>
 
 
 <div class="floating-cart" onclick="location.href='cart.html'">
 
-🛒 <span id="cartCount">0</span>
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
+<span id="cartCount">0</span>
 
 </div>
 
@@ -166,35 +193,27 @@
 
 <div>
 <h4>About</h4>
-<a href="#">Company</a>
-<a href="#">Careers</a>
-<a href="#">Press</a>
+<a href="about.html">Our Story</a>
+<a href="contact.html">Contact</a>
 </div>
 
 <div>
 <h4>Help</h4>
-<a href="#">Support</a>
-<a href="#">Shipping</a>
-<a href="#">Returns</a>
+<a href="contact.html">Support</a>
+<a href="shipping-returns.html">Shipping</a>
+<a href="shipping-returns.html">Returns</a>
 </div>
 
 <div>
 <h4>Sell</h4>
-<a href="#">Start Selling</a>
-<a href="#">Seller Guide</a>
-</div>
-
-<div>
-<h4>Follow</h4>
-<a href="#">Instagram</a>
-<a href="#">Twitter</a>
-<a href="#">Facebook</a>
+<a href="sell.html">Start Selling</a>
+<a href="sell.html">Seller Guide</a>
 </div>
 
 </div>
 
 <p class="copyright">
-© 2026 CraftNext. All rights reserved.
+© 2026 CraftNext. All rights reserved. · <a href="privacy.html" style="color:inherit">Privacy Policy</a> · <a href="terms.html" style="color:inherit">Terms of Service</a>
 </p>
 
 </footer>
@@ -210,149 +229,185 @@ window.location.href = "collection.html?cat=" + cat;
 </script>
 
 
-<script src="products.js"></script>
+<script src="api.js"></script>
 <script src="script.js"></script>
 
 
 <!-- LOGIN / LOGOUT CONTROL -->
 <script>
-
 document.addEventListener("DOMContentLoaded", function(){
+  const user = getUser();
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const adminPanelBtn = document.getElementById("adminPanelBtn");
 
-const token = localStorage.getItem("cn_token");
+  if (user) {
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline";
+    logoutBtn.textContent = "Logout (" + user.name.split(" ")[0] + ")";
+    if (user.role === "admin") adminPanelBtn.style.display = "inline";
+  }
 
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
+  logoutBtn.addEventListener("click", function(){
+    clearAuth();
+    showToast("Logged out successfully", "info");
+    setTimeout(() => window.location.reload(), 800);
+  });
 
-if(token){
-loginBtn.style.display = "none";
-logoutBtn.style.display = "inline";
+  // Handle redirect after login
+  const redir = sessionStorage.getItem("redirect_after_login");
+  if (redir) {
+    sessionStorage.removeItem("redirect_after_login");
+    window.location.href = redir;
+  }
+});
+</script>
+
+
+<!-- PRODUCTS (Featured + New Comers + Search) — all from the API -->
+<script>
+
+const featuredGrid = document.getElementById("productContainer");
+const newGrid = document.getElementById("newProducts");
+const featuredHeading = document.querySelector(".products h2");
+
+let ALL_PRODUCTS = [];
+
+function renderSkeletons(container, count) {
+  container.innerHTML = Array.from({length: count}, () => `
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-img"></div>
+      <div class="skeleton-body">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line short"></div>
+        <div class="skeleton skeleton-line price"></div>
+      </div>
+    </div>
+  `).join("");
 }
 
-logoutBtn.addEventListener("click", function(){
+function renderInto(container, list, emptyMsg) {
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>${emptyMsg}</p></div>`;
+    return;
+  }
+  container.innerHTML = "";
+  list.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = productCardHTML(p);
+    container.appendChild(card);
+  });
+  renderWishlistIcons();
+}
 
-localStorage.removeItem("cn_token");
+function featuredList() {
+  const best = ALL_PRODUCTS.filter(p => p.bestSeller);
+  return best.length ? best : ALL_PRODUCTS.slice(0, 8);
+}
 
-alert("Logged out successfully");
+async function loadProducts() {
+  renderSkeletons(featuredGrid, 5);
+  renderSkeletons(newGrid, 4);
+  try {
+    ALL_PRODUCTS = await Products.getAll();
+    cacheProducts(ALL_PRODUCTS);
 
-window.location.reload();
+    renderInto(featuredGrid, featuredList(), "No products found.");
 
+    const newcomers = ALL_PRODUCTS.filter(p => p.newArrival);
+    renderInto(newGrid, newcomers.length ? newcomers : ALL_PRODUCTS.slice(0, 4), "No new products yet.");
+  } catch (err) {
+    const msg = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load products. Make sure the backend is running.</p></div>`;
+    featuredGrid.innerHTML = msg;
+    newGrid.innerHTML = msg;
+  }
+}
+
+function doSearch() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  if (!q) {
+    featuredHeading.textContent = "Featured Products";
+    renderInto(featuredGrid, featuredList(), "No products found.");
+    return;
+  }
+  const results = ALL_PRODUCTS.filter(p =>
+    (p.name || "").toLowerCase().includes(q) ||
+    (p.sellerName || "").toLowerCase().includes(q) ||
+    (p.category || "").toLowerCase().includes(q)
+  );
+  featuredHeading.textContent = `Results for "${q}"`;
+  renderInto(featuredGrid, results, "No products match your search.");
+  featuredHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+document.getElementById("searchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") doSearch();
 });
 
-});
+loadProducts();
+
+async function loadTopSeller() {
+  try {
+    const seller = await Products.topSeller();
+    if (!seller) return;
+    document.getElementById("spotlightName").textContent = seller.name;
+    document.getElementById("spotlightLocation").textContent = seller.location;
+    document.getElementById("spotlightDescription").textContent = seller.description ||
+      `Specialized in handmade goods with ${seller.productCount} product${seller.productCount === 1 ? "" : "s"} listed.`;
+    document.getElementById("spotlightRating").textContent = `${starString(seller.rating)} ${seller.rating.toFixed(1)}/5.0`;
+    document.getElementById("spotlightPhone").textContent = seller.phone ? `Mo. No. ${seller.phone}` : "";
+    document.getElementById("spotlightAvatar").src = seller.avatar ? imgUrl(seller.avatar) : "Images/Clock/Ganesha Image.jpg";
+    document.getElementById("sellerSpotlight").style.display = "";
+  } catch (err) {
+    // Spotlight is decorative — fail silently, section just stays hidden.
+  }
+}
+
+loadTopSeller();
+
+async function loadCategoryImages() {
+  try {
+    const map = await Products.categoryImages();
+    Object.keys(map).forEach((cat) => {
+      const img = document.querySelector(`.category-card img[data-category="${cat}"]`);
+      if (img && map[cat]) img.src = imgUrl(map[cat]);
+    });
+  } catch (err) {
+    // Falls back to the default category art — not worth surfacing to the user.
+  }
+}
+
+loadCategoryImages();
 
 </script>
 
 
-<!-- FEATURED PRODUCTS -->
+<!-- NEWSLETTER -->
 <script>
 
-const grid = document.getElementById("productContainer");
+async function subscribeNewsletter(e) {
+  e.preventDefault();
+  const email = document.getElementById("newsletterEmail").value.trim();
+  const msgEl = document.getElementById("newsletterMsg");
+  const btn = e.target.querySelector("button");
 
-function renderProducts(list){
-
-grid.innerHTML="";
-
-list.forEach(p => {
-
-const stars =
-"★".repeat(Math.round(p.rating || 5)) +
-"☆".repeat(5 - Math.round(p.rating || 5));
-
-grid.innerHTML += `
-
-<div class="product-card">
-
-<span class="wish" data-id="${p.id}">♥</span>
-
-<a href="product.html?id=${p.id}" class="card-link">
-<img src="${p.img}">
-</a>
-
-<h4>
-<a href="product.html?id=${p.id}">
-${p.name}
-</a>
-</h4>
-
-<p>
-By <a href="seller.html?seller=${encodeURIComponent(p.seller)}">
-${p.seller}
-</a>
-</p>
-
-<div class="rating">${stars}</div>
-
-<span class="price">₹${p.price}</span>
-
-<button onclick="addToCart(PRODUCTS.find(x=>x.id===${p.id}))">
-Add to Cart
-</button>
-
-</div>
-
-`;
-
-});
-
-renderWishlistIcons();
-
+  btn.disabled = true;
+  try {
+    const res = await Newsletter.subscribe(email);
+    msgEl.textContent = res.message;
+    msgEl.style.color = "var(--ok)";
+    msgEl.style.display = "block";
+    document.getElementById("newsletterEmail").value = "";
+  } catch (err) {
+    msgEl.textContent = err.message || "Could not subscribe. Please try again.";
+    msgEl.style.color = "var(--danger)";
+    msgEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+  }
+  return false;
 }
-
-renderProducts(PRODUCTS);
-
-</script>
-
-
-<!-- NEW COMERS -->
-<script>
-
-async function loadNewProducts(){
-
-const res = await fetch("http://localhost:5000/api/products");
-const products = await res.json();
-
-const grid = document.getElementById("newProducts");
-
-grid.innerHTML="";
-
-products.forEach(p => {
-
-grid.innerHTML += `
-
-<div class="product-card">
-
-<a href="product.html?id=${p._id}">
-<img src="http://localhost:5000${p.img}?t=${Date.now()}">
-</a>
-
-<h4>
-<a href="product.html?id=${p._id}">
-${p.name}
-</a>
-</h4>
-
-<p>By ${p.sellerName}</p>
-
-<span class="price">₹${p.price}</span>
-
-<button onclick="addToCart({
-name:'${p.name}',
-price:${p.price},
-img:'http://localhost:5000${p.img}'
-})">
-Add to Cart
-</button>
-
-</div>
-
-`;
-
-});
-
-}
-
-loadNewProducts();
 
 </script>
 
