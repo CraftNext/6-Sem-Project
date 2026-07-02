@@ -117,9 +117,19 @@
 <!-- FEATURED PRODUCTS -->
 <section class="products">
 
+<div class="carousel-header">
 <h2>Featured Products</h2>
+<div class="carousel-arrows">
+<button class="carousel-arrow" onclick="scrollCarousel('productContainer', -1)" aria-label="Scroll left">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+</button>
+<button class="carousel-arrow" onclick="scrollCarousel('productContainer', 1)" aria-label="Scroll right">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+</button>
+</div>
+</div>
 
-<div class="product-grid" id="productContainer"></div>
+<div class="product-grid carousel-track" id="productContainer"></div>
 
 </section>
 
@@ -127,9 +137,19 @@
 <!-- NEW COMERS -->
 <section class="products">
 
+<div class="carousel-header">
 <h2>New Comers</h2>
+<div class="carousel-arrows">
+<button class="carousel-arrow" onclick="scrollCarousel('newProducts', -1)" aria-label="Scroll left">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+</button>
+<button class="carousel-arrow" onclick="scrollCarousel('newProducts', 1)" aria-label="Scroll right">
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+</button>
+</div>
+</div>
 
-<div class="product-grid" id="newProducts"></div>
+<div class="product-grid carousel-track" id="newProducts"></div>
 
 </section>
 
@@ -344,6 +364,11 @@ function doSearch() {
 document.getElementById("searchInput").addEventListener("keydown", e => {
   if (e.key === "Enter") doSearch();
 });
+
+function scrollCarousel(containerId, direction) {
+  const el = document.getElementById(containerId);
+  el.scrollBy({ left: direction * (el.clientWidth * 0.8), behavior: "smooth" });
+}
 
 loadProducts();
 

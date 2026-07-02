@@ -256,7 +256,7 @@ border:1px solid var(--line);
 
 </select>
 
-<input type="file" id="pImgFile" accept="image/*">
+<input type="file" id="pImgFile" accept="image/*" multiple>
 <p id="editImgHint" style="display:none;font-size:12px;color:var(--muted);margin:-6px 0 12px">Image can't be changed here — remove and re-add the product to replace it.</p>
 
 <button id="saveBtn" onclick="saveProduct()">Add Product</button>
@@ -353,14 +353,14 @@ try {
   if (editingId) {
     await Products.update(editingId, { name, description, price: Number(price), stock: Number(stock), category });
   } else {
-    const image = document.getElementById("pImgFile").files[0];
+    const images = document.getElementById("pImgFile").files;
     const formData = new FormData();
     formData.append("name", name);
     formData.append("description", description);
     formData.append("price", price);
     formData.append("stock", stock);
     formData.append("category", category);
-    if (image) formData.append("image", image);
+    for (const file of images) formData.append("images", file);
 
     await fetch("http://localhost:5000/api/products", {
       method: "POST",

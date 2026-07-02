@@ -28,8 +28,10 @@ const storage = multer.diskStorage({
 
   filename: function (req, file, cb) {
 
+    // Random suffix (not just Date.now()) — multiple files in one multi-image
+    // upload can land in the same millisecond and would otherwise collide.
     const uniqueName =
-      Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
+      Date.now() + "-" + Math.round(Math.random() * 1e9) + "-" + file.originalname.replace(/\s+/g, "_");
 
     cb(null, uniqueName);
   },
@@ -185,7 +187,7 @@ router.post(
   "/",
   protect,
   sellerOrAdmin,
-  upload.single("image"),
+  upload.array("images", 5),
   [
     body("name").trim().notEmpty().withMessage("Product name is required"),
     body("price").isFloat({ gt: 0 }).withMessage("Price must be greater than 0"),
@@ -201,19 +203,16 @@ router.post(
 
       const { name, description, price, category, stock, bestSeller, newArrival, isCategoryImage } = req.body;
 
-      let imagePath = "";
-
-      if (req.file) {
-        imagePath = `/uploads/${category}/${req.file.filename}`;
-      }
+      // First uploaded image is the main/cover photo; all of them go into the gallery.
+      const imagePaths = (req.files || []).map((f) => `/uploads/${category}/${f.filename}`);
 
       const product = await Product.create({
         name,
         description,
         price,
         category,
-        img: imagePath,
-        images: [imagePath],
+        img: imagePaths[0] || "",
+        images: imagePaths,
         stock: stock || 10,
         seller: req.user._id,
         sellerName: req.user.shopName || req.user.name,

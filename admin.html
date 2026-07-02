@@ -558,8 +558,8 @@ tr:hover td { background: var(--bg); }
             <input class="table-search" style="width:100%" id="prodDesc" placeholder="Brief description">
           </div>
           <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Image</label>
-            <input class="table-search" style="width:100%" id="prodImage" type="file" accept="image/*">
+            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Images (first one is the main photo)</label>
+            <input class="table-search" style="width:100%" id="prodImage" type="file" accept="image/*" multiple>
           </div>
           <div style="display:flex;gap:16px;grid-column:1 / -1;flex-wrap:wrap">
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
@@ -1056,8 +1056,8 @@ async function saveProduct(e) {
   formData.append("bestSeller", document.getElementById("prodFeatured").checked);
   formData.append("newArrival", document.getElementById("prodNewArrival").checked);
   formData.append("isCategoryImage", document.getElementById("prodCategoryImage").checked);
-  const image = document.getElementById("prodImage").files[0];
-  if (image) formData.append("image", image);
+  const images = document.getElementById("prodImage").files;
+  for (const file of images) formData.append("images", file);
 
   try {
     const res = await fetch(API_BASE + "/products", {
