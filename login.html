@@ -348,11 +348,22 @@ let role = "buyer";
 let pendingEmail = "";
 let pendingResetToken = "";
 
+// Wipes every field on the form — called on any role switch or mode switch
+// so no leftover data (someone else's email/password, a half-typed shop
+// name) ever carries over to what the user is about to do next.
+function clearFormFields() {
+  ["nameInput", "emailInput", "passwordInput", "shopNameInput", "locationInput", "phoneInput", "shopDescInput"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+}
+
 function setRole(r) {
   role = r;
   document.querySelectorAll(".role-tab").forEach((t, i) => {
     t.classList.toggle("active", ["buyer","seller","admin"][i] === r);
   });
+
+  clearFormFields();
 
   const sellerFields = document.getElementById("sellerFields");
   sellerFields.classList.toggle("show", r === "seller" && mode === "register");
@@ -390,6 +401,7 @@ function toggleMode() {
 
   document.getElementById("sellerFields").classList.toggle("show", role === "seller" && isRegister);
 
+  clearFormFields();
   clearMessages();
 }
 

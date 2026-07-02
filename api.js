@@ -144,12 +144,13 @@ const Orders = {
   getById: (id) => apiRequest(`/orders/${id}`, "GET", null, true),
   updateStatus: (id, status) => apiRequest(`/orders/${id}/status`, "PUT", { status }, true),
   cancel: (id) => apiRequest(`/orders/${id}/cancel`, "PUT", null, true),
+  verifyPayment: (id, payload) => apiRequest(`/orders/${id}/verify-payment`, "POST", payload, true),
 };
 
 /* ——— CHAT ASSISTANT ——— */
 
 const Chat = {
-  send: (message, history) => apiRequest("/chat", "POST", { message, history }),
+  send: (message, history, cart) => apiRequest("/chat", "POST", { message, history, cart }),
 };
 
 /* ——— NEWSLETTER ——— */

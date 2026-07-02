@@ -47,7 +47,13 @@ if (process.env.NODE_ENV === "production" && !process.env.CLIENT_URL) {
 }
 
 const clientUrl = process.env.CLIENT_URL || "http://localhost:5500";
-const allowedOrigins = new Set([clientUrl]);
+const allowedOrigins = new Set([
+  clientUrl,
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:5602",
+  "http://127.0.0.1:5602"
+]);
 
 try {
   const parsedClientUrl = new URL(clientUrl);

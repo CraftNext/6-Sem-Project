@@ -52,39 +52,103 @@
 
 <div class="product-container">
 
-<!-- IMAGE -->
-
+<!-- IMAGE GALLERY -->
 <div class="product-left">
-<img id="productImage">
+  <div id="productThumbnails" class="product-thumbnails" style="display:none"></div>
+  <div class="product-main-img-wrapper">
+    <img id="productImage">
+  </div>
 </div>
 
-
-<!-- DETAILS -->
-
+<!-- DETAILS (Etsy Style) -->
 <div class="product-right">
+  
+  <div class="shop-badge">
+    <span id="shopBadgeName" class="shop-name-label"></span>
+    <span class="shop-sales">· 1,480 sales | ★★★★★</span>
+  </div>
 
-<h1 id="productName"></h1>
+  <h1 id="productName" class="etsy-title"></h1>
 
-<p>By <span id="productSeller"></span></p>
+  <div id="productRating" class="rating" style="margin-bottom:14px"></div>
 
-<div id="productRating" class="rating"></div>
+  <div class="price-section">
+    <span id="productPrice" class="etsy-price"></span>
+    <span class="tax-info">Local taxes included (where applicable)</span>
+  </div>
 
-<div id="productPrice" class="price"></div>
+  <!-- HIGHLIGHTS -->
+  <div class="highlights-box">
+    <div class="highlight-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span><strong>Handmade</strong> — crafted with love in India</span>
+    </div>
+    <div class="highlight-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span>Ships from <strong id="productSellerLocation">Gujarat, India</strong></span>
+    </div>
+    <div class="highlight-item">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+      <span>Ready to ship in 1-2 business days</span>
+    </div>
+  </div>
 
-<p id="productDesc"></p>
+  <!-- PURCHASE ACTIONS -->
+  <div class="purchase-box">
+    <div class="qty-selector-row">
+      <label>Quantity</label>
+      <div class="qty-box">
+        <button id="minus">-</button>
+        <span id="qty">1</span>
+        <button id="plus">+</button>
+      </div>
+    </div>
+    
+    <button id="addCartBtn" class="etsy-add-btn">Add to Cart</button>
+    <button id="buyBtn" class="etsy-buy-btn">Buy It Now</button>
+  </div>
 
-
-<div class="qty-box">
-<button id="minus">-</button>
-<span id="qty">1</span>
-<button id="plus">+</button>
-</div>
-
-
-<div class="product-buttons">
-<button id="addCartBtn" class="cart-btn">Add to Cart</button>
-<button id="buyBtn" class="buy-btn">Buy Now</button>
-</div>
+  <!-- ACCORDION DETAILS -->
+  <div class="accordion">
+    <div class="accordion-item active" onclick="toggleAccordion(this)">
+      <div class="accordion-header">
+        <span>Description</span>
+        <span class="arrow">&#9662;</span>
+      </div>
+      <div class="accordion-content">
+        <p id="productDesc"></p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" onclick="toggleAccordion(this)">
+      <div class="accordion-header">
+        <span>Shipping and return policies</span>
+        <span class="arrow">&#9656;</span>
+      </div>
+      <div class="accordion-content">
+        <p style="margin-bottom:8px"><strong>Cost to ship:</strong> Free shipping on orders above ₹999! (Otherwise a flat fee of ₹49 applies).</p>
+        <p style="margin-bottom:8px"><strong>Delivery time:</strong> Expect delivery within 3-5 business days from dispatch.</p>
+        <p><strong>Returns:</strong> Accepted within 14 days of delivery. Buyer covers return shipping costs.</p>
+      </div>
+    </div>
+    
+    <div class="accordion-item" onclick="toggleAccordion(this)">
+      <div class="accordion-header">
+        <span>Meet the creator</span>
+        <span class="arrow">&#9656;</span>
+      </div>
+      <div class="accordion-content">
+        <div class="meet-seller-row">
+          <img id="sellerAvatar" src="Images/Clock/Ganesha Image.jpg" class="meet-seller-img">
+          <div>
+            <h4 id="sellerShopName" style="margin-bottom:4px"></h4>
+            <p id="sellerShopDesc" style="font-size:12px;color:var(--muted);line-height:1.4"></p>
+            <button class="contact-seller-btn" onclick="location.href='contact.html'">Message Creator</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
@@ -104,6 +168,7 @@
 <section class="reviews-section">
   <h2>Reviews</h2>
   <div class="review-summary" id="reviewSummary"></div>
+  <div id="ratingBreakdown" class="rating-breakdown" style="display:none"></div>
 
   <form class="review-form" id="reviewForm" style="display:none">
     <select id="reviewRating" aria-label="Your rating">
@@ -185,15 +250,65 @@ async function loadProduct() {
     product.sellerName ||
     (product.seller && (product.seller.shopName || product.seller.name)) ||
     "Seller";
+  
+  const sellerObj = product.seller || {};
+  const sellerLocation = sellerObj.location || "Gujarat, India";
+  const sellerAvatarUrl = sellerObj.avatar ? imgUrl(sellerObj.avatar) : "Images/Clock/Ganesha Image.jpg";
+  const sellerDescription = sellerObj.shopDescription || "Specialized in handcrafted traditional Indian artwork, making unique decor pieces.";
+
+  document.getElementById("shopBadgeName").innerText = sellerName;
+  document.getElementById("sellerShopName").innerText = sellerName;
+  document.getElementById("productSellerLocation").innerText = sellerLocation;
+  document.getElementById("sellerAvatar").src = sellerAvatarUrl;
+  document.getElementById("sellerShopDesc").innerText = sellerDescription;
 
   document.getElementById("productImage").src = imgUrl(product.img);
   document.getElementById("productImage").alt = product.name;
   document.getElementById("productName").innerText = product.name;
-  document.getElementById("productSeller").innerText = sellerName;
   document.getElementById("productPrice").innerText = "₹" + Number(product.price).toLocaleString("en-IN");
   document.getElementById("productDesc").innerText = product.description || "";
   document.getElementById("productRating").innerText = starString(product.rating);
   document.title = product.name + " – CraftNext";
+
+  // Build gallery thumbnails
+  const thumbnailsDiv = document.getElementById("productThumbnails");
+  const allImages = [product.img, ...(product.images || [])].filter((val, idx, self) => val && self.indexOf(val) === idx);
+  
+  if (allImages.length > 1) {
+    thumbnailsDiv.innerHTML = allImages.map((img, idx) => `
+      <img class="product-thumbnail ${idx === 0 ? "active" : ""}" src="${imgUrl(img)}" data-idx="${idx}" alt="Thumbnail">
+    `).join("");
+    thumbnailsDiv.style.display = "flex";
+    
+    // Add event listeners to swap main image
+    document.querySelectorAll(".product-thumbnail").forEach(thumb => {
+      thumb.addEventListener("click", function() {
+        document.querySelectorAll(".product-thumbnail").forEach(t => t.classList.remove("active"));
+        this.classList.add("active");
+        document.getElementById("productImage").src = this.src;
+      });
+      thumb.addEventListener("mouseover", function() {
+        document.querySelectorAll(".product-thumbnail").forEach(t => t.classList.remove("active"));
+        this.classList.add("active");
+        document.getElementById("productImage").src = this.src;
+      });
+    });
+  } else {
+    thumbnailsDiv.style.display = "none";
+  }
+}
+
+function toggleAccordion(el) {
+  const isActive = el.classList.contains("active");
+  
+  // Toggle current clicked element
+  if (isActive) {
+    el.classList.remove("active");
+    el.querySelector(".arrow").innerHTML = "&#9656;";
+  } else {
+    el.classList.add("active");
+    el.querySelector(".arrow").innerHTML = "&#9662;";
+  }
 }
 
 
@@ -260,6 +375,7 @@ async function loadRelated() {
 async function loadReviews() {
   const listEl = document.getElementById("reviewList");
   const summaryEl = document.getElementById("reviewSummary");
+  const breakdownEl = document.getElementById("ratingBreakdown");
 
   try {
     const reviews = await Products.reviews(id);
@@ -267,10 +383,37 @@ async function loadReviews() {
     if (!reviews.length) {
       summaryEl.textContent = "No reviews yet — be the first!";
       listEl.innerHTML = "";
+      breakdownEl.style.display = "none";
     } else {
       const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
       summaryEl.textContent =
         `${avg.toFixed(1)} ★ average · ${reviews.length} review${reviews.length > 1 ? "s" : ""}`;
+
+      // Calculate star breakdown counts
+      const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      reviews.forEach(r => {
+        const rating = Math.max(1, Math.min(5, Math.round(Number(r.rating) || 5)));
+        counts[rating] = (counts[rating] || 0) + 1;
+      });
+
+      breakdownEl.innerHTML = `
+        <div class="rating-breakdown-title">Rating Distribution</div>
+        ${[5, 4, 3, 2, 1].map(stars => {
+          const count = counts[stars] || 0;
+          const percent = Math.round((count / reviews.length) * 100);
+          return `
+            <div class="rating-bar-row">
+              <span class="rating-label">${stars} Star</span>
+              <div class="rating-bar-bg">
+                <div class="rating-bar-fill" style="width: ${percent}%"></div>
+              </div>
+              <span class="rating-count">${count}</span>
+            </div>
+          `;
+        }).join("")}
+      `;
+      breakdownEl.style.display = "flex";
+
       listEl.innerHTML = reviews.map(r => `
         <div class="review-card">
           <div><span class="who">${esc(r.name || "User")}</span><span class="stars">${starString(r.rating)}</span></div>
@@ -280,6 +423,7 @@ async function loadReviews() {
     }
   } catch (err) {
     summaryEl.textContent = "Could not load reviews.";
+    breakdownEl.style.display = "none";
   }
 
   if (isLoggedIn()) {

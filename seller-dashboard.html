@@ -169,6 +169,60 @@ border:1px solid var(--line);
 }
 
 .modal-box button:last-child:hover{ background:var(--surface-2); }
+
+/* Drag and Drop Zone styling */
+.drag-drop-zone {
+    border: 2px dashed var(--line-strong);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s;
+    margin-bottom: 12px;
+}
+.drag-drop-zone.hover {
+    border-color: var(--accent);
+    background: var(--surface-2);
+}
+.image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.preview-thumbnail {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+.preview-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.preview-thumbnail-remove {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    line-height: 1;
+}
+.preview-thumbnail-remove:hover {
+    background: var(--danger);
+}
 </style>
 
 </head>
@@ -256,8 +310,13 @@ border:1px solid var(--line);
 
 </select>
 
-<input type="file" id="pImgFile" accept="image/*" multiple>
-<p id="editImgHint" style="display:none;font-size:12px;color:var(--muted);margin:-6px 0 12px">Image can't be changed here — remove and re-add the product to replace it.</p>
+<div class="drag-drop-zone" id="dragDropZone">
+    <svg class="icon upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:32px;height:32px;margin-bottom:8px;color:var(--muted)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    <p style="margin:0;font-size:13px;color:var(--muted)">Drag & drop images here or <span style="color:var(--accent-ink);font-weight:600;text-decoration:underline;cursor:pointer">browse</span></p>
+    <input type="file" id="pImgFile" accept="image/*" multiple style="display:none">
+</div>
+<div id="imagePreviewContainer" class="image-preview-container"></div>
+<p id="editImgHint" style="display:none;font-size:12px;color:var(--muted);margin:8px 0 12px">Image can't be changed here — remove and re-add the product to replace it.</p>
 
 <button id="saveBtn" onclick="saveProduct()">Add Product</button>
 <button onclick="closeModal()">Cancel</button>
@@ -297,40 +356,100 @@ function showTab(name, btn) {
 /* MODAL */
 
 let editingId = null;
+let uploadedFiles = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  const zone = document.getElementById("dragDropZone");
+  const input = document.getElementById("pImgFile");
+  if (zone && input) {
+    zone.addEventListener("click", () => input.click());
+    zone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      zone.classList.add("hover");
+    });
+    zone.addEventListener("dragleave", () => {
+      zone.classList.remove("hover");
+    });
+    zone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zone.classList.remove("hover");
+      handleFiles(e.dataTransfer.files);
+    });
+    input.addEventListener("change", (e) => {
+      handleFiles(e.target.files);
+    });
+  }
+});
+
+function handleFiles(files) {
+  for (const file of files) {
+    if (file.type.startsWith("image/")) {
+      uploadedFiles.push(file);
+    }
+  }
+  renderPreviews();
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const container = document.getElementById("imagePreviewContainer");
+  if (!container) return;
+  container.innerHTML = "";
+  uploadedFiles.forEach((file, idx) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const div = document.createElement("div");
+      div.className = "preview-thumbnail";
+      div.innerHTML = `
+        <img src="${e.target.result}" alt="Preview">
+        <button class="preview-thumbnail-remove" onclick="removeFile(${idx})" type="button">&times;</button>
+      `;
+      container.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 function openAddModal(){
-editingId = null;
-document.getElementById("modalTitle").textContent = "Add New Product";
-document.getElementById("saveBtn").textContent = "Add Product";
-document.getElementById("pName").value = "";
-document.getElementById("pDesc").value = "";
-document.getElementById("pPrice").value = "";
-document.getElementById("pStock").value = "10";
-document.getElementById("pCategory").value = "spiritual";
-document.getElementById("pImgFile").value = "";
-document.getElementById("pImgFile").style.display = "block";
-document.getElementById("editImgHint").style.display = "none";
-document.getElementById("modal").style.display="flex";
+  editingId = null;
+  uploadedFiles = [];
+  renderPreviews();
+  document.getElementById("modalTitle").textContent = "Add New Product";
+  document.getElementById("saveBtn").textContent = "Add Product";
+  document.getElementById("pName").value = "";
+  document.getElementById("pDesc").value = "";
+  document.getElementById("pPrice").value = "";
+  document.getElementById("pStock").value = "10";
+  document.getElementById("pCategory").value = "spiritual";
+  document.getElementById("dragDropZone").style.display = "block";
+  document.getElementById("editImgHint").style.display = "none";
+  document.getElementById("modal").style.display="flex";
 }
 
 function openEditModal(id){
-const p = productsCache.find(x => x._id === id);
-if (!p) return;
-editingId = p._id;
-document.getElementById("modalTitle").textContent = "Edit Product";
-document.getElementById("saveBtn").textContent = "Save Changes";
-document.getElementById("pName").value = p.name;
-document.getElementById("pDesc").value = p.description || "";
-document.getElementById("pPrice").value = p.price;
-document.getElementById("pStock").value = p.stock;
-document.getElementById("pCategory").value = p.category;
-document.getElementById("pImgFile").style.display = "none";
-document.getElementById("editImgHint").style.display = "block";
-document.getElementById("modal").style.display="flex";
+  const p = productsCache.find(x => x._id === id);
+  if (!p) return;
+  editingId = p._id;
+  uploadedFiles = [];
+  renderPreviews();
+  document.getElementById("modalTitle").textContent = "Edit Product";
+  document.getElementById("saveBtn").textContent = "Save Changes";
+  document.getElementById("pName").value = p.name;
+  document.getElementById("pDesc").value = p.description || "";
+  document.getElementById("pPrice").value = p.price;
+  document.getElementById("pStock").value = p.stock;
+  document.getElementById("pCategory").value = p.category;
+  document.getElementById("dragDropZone").style.display = "none";
+  document.getElementById("editImgHint").style.display = "block";
+  document.getElementById("modal").style.display="flex";
 }
 
 function closeModal(){
-document.getElementById("modal").style.display="none";
+  document.getElementById("modal").style.display="none";
 }
 
 
@@ -338,42 +457,47 @@ document.getElementById("modal").style.display="none";
 
 async function saveProduct(){
 
-const name = document.getElementById("pName").value;
-const description = document.getElementById("pDesc").value;
-const price = document.getElementById("pPrice").value;
-const stock = document.getElementById("pStock").value;
-const category = document.getElementById("pCategory").value;
+  const name = document.getElementById("pName").value;
+  const description = document.getElementById("pDesc").value;
+  const price = document.getElementById("pPrice").value;
+  const stock = document.getElementById("pStock").value;
+  const category = document.getElementById("pCategory").value;
 
-if(!name || !price || !category){
-alert("Please fill required fields");
-return;
-}
-
-try {
-  if (editingId) {
-    await Products.update(editingId, { name, description, price: Number(price), stock: Number(stock), category });
-  } else {
-    const images = document.getElementById("pImgFile").files;
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("price", price);
-    formData.append("stock", stock);
-    formData.append("category", category);
-    for (const file of images) formData.append("images", file);
-
-    await fetch("http://localhost:5000/api/products", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${getToken()}` },
-      body: formData,
-    });
+  if(!name || !price || !category){
+    alert("Please fill required fields");
+    return;
   }
 
-  closeModal();
-  loadProducts();
-} catch (err) {
-  alert(err.message || "Could not save product");
-}
+  try {
+    if (editingId) {
+      await Products.update(editingId, { name, description, price: Number(price), stock: Number(stock), category });
+    } else {
+      if (uploadedFiles.length === 0) {
+        alert("Please add at least one product photo");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("description", description);
+      formData.append("price", price);
+      formData.append("stock", stock);
+      formData.append("category", category);
+      for (const file of uploadedFiles) {
+        formData.append("images", file);
+      }
+
+      await fetch("http://localhost:5000/api/products", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: formData,
+      });
+    }
+
+    closeModal();
+    loadProducts();
+  } catch (err) {
+    alert(err.message || "Could not save product");
+  }
 
 }
 

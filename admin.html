@@ -563,7 +563,7 @@ tr:hover td { background: var(--bg); }
           </div>
           <div style="display:flex;gap:16px;grid-column:1 / -1;flex-wrap:wrap">
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
-              <input type="checkbox" id="prodFeatured"> Show in Featured Products
+              <input type="checkbox" id="prodFeatured"> Mark as Bestseller (Featured)
             </label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
               <input type="checkbox" id="prodNewArrival" checked> Show in New Comers
@@ -708,6 +708,7 @@ function showTab(name) {
   const titles = { overview:"Dashboard Overview", users:"User Management", products:"Product Catalog", orders:"Order Management", coupons:"Coupon Management" };
   document.getElementById("topbarTitle").textContent = titles[name];
 
+  if (name === "overview") loadStats();
   if (name === "users") loadUsers("all");
   if (name === "products") loadProducts();
   if (name === "orders") loadOrders();
@@ -958,7 +959,7 @@ async function loadProducts(page = 1) {
           <button class="action-btn ${p.isApproved === false ? "btn-activate" : "btn-suspend"}" onclick="toggleProductFlag('${p._id}', 'isApproved', ${p.isApproved === false})">${p.isApproved === false ? "Approve" : "Revoke"}</button>
         </td>
         <td>
-          <button class="action-btn ${p.bestSeller ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'bestSeller', ${!p.bestSeller})">${p.bestSeller ? "Unfeature" : "Feature"}</button>
+          <button class="action-btn ${p.bestSeller ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'bestSeller', ${!p.bestSeller})">${p.bestSeller ? "Unmark Bestseller" : "Mark Bestseller"}</button>
           <button class="action-btn ${p.newArrival ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'newArrival', ${!p.newArrival})">${p.newArrival ? "Unmark New" : "Mark New"}</button>
           <button class="action-btn ${p.isCategoryImage ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'isCategoryImage', ${!p.isCategoryImage})">${p.isCategoryImage ? "Unset Category Image" : "Set as Category Image"}</button>
         </td>

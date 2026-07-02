@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { GoogleGenAI, ApiError } = require("@google/genai");
+const Product = require("../models/Product");
 
 // Comma-separated keys let requests spread across each key's own free-tier
 // quota — round-robin on the happy path, fall back to the next key if one
@@ -26,7 +27,7 @@ What you know about CraftNext:
 How to answer:
 - Keep replies short — 2 to 4 sentences, friendly and plain-spoken.
 - Only answer questions about using CraftNext (buying, selling, orders, account, shipping, returns policy). For anything else, politely say you're just here to help with the CraftNext site.
-- Never invent specific order numbers, prices, stock levels, or account details — you don't have access to live order data. Point the user to the relevant page instead (their orders page, product page, or the contact page) rather than guessing.
+- Never invent specific order numbers or transaction logs. Point the user to the relevant page instead (their orders page, profile page, or the contact page). However, you DO have access to their active shopping cart items (listed below) and should use this data to accurately describe, review, total, or recommend items from their current cart if asked.
 - If someone reports a bug or a specific problem with their account/order, tell them to reach out via the Contact page since you can't look up individual accounts.`;
 
 // @POST /api/chat — public, stateless (client resends its own history each time)
@@ -47,6 +48,42 @@ router.post("/", async (req, res) => {
 
     history.push({ role: "user", parts: [{ text: message }] });
 
+    // Dynamically query available products to inject context into assistant
+    let productCatalogContext = "";
+    try {
+      const activeProducts = await Product.find({ isActive: true, isApproved: { $ne: false } })
+        .select("name category sellerName price")
+        .limit(30);
+      productCatalogContext = activeProducts.map(p => 
+        `- ${p.name} (Category: ${p.category}, Price: ₹${p.price}, ID: ${p._id.toString()})`
+      ).join("\n");
+    } catch (dbErr) {
+      console.warn("Could not query products for chat context:", dbErr.message);
+    }
+
+    const cart = Array.isArray(req.body.cart) ? req.body.cart : [];
+    let cartContext = "";
+    if (cart.length > 0) {
+      cartContext = cart.map(item => `- ${item.name} (Quantity: ${item.qty}, Price: ₹${item.price}, ID: ${item.id}, Image: ${item.img})`).join("\n");
+    } else {
+      cartContext = "The user's shopping cart is currently empty.";
+    }
+
+    const dynamicSystemPrompt = `${SYSTEM_PROMPT}
+
+User's Current Shopping Cart:
+${cartContext}
+
+Available Product Catalog (use these exact IDs for recommendations):
+${productCatalogContext || "No products currently available."}
+
+How to link products:
+- When recommending any product from the catalog, you MUST link it using markdown link format: [Product Name](product.html?id=ID). Example: "I highly recommend checking out our [Krishna Painting](product.html?id=65a3f...)."
+- NEVER invent product IDs. Only link products that exist in the Available Product Catalog above.
+
+How to display cart items:
+- When listing items in the user's current shopping cart, you MUST render their image right before the item name in the list using markdown image syntax: ![Item Name](Image_Path). Example: "* ![Lippan Art](uploads/123.jpg) **Lippan Art** (Quantity: 1, Price: ₹499)"`;
+
     const startIdx = nextKey;
     nextKey = (nextKey + 1) % API_KEYS.length;
 
@@ -59,8 +96,8 @@ router.post("/", async (req, res) => {
           model: "gemini-2.5-flash",
           contents: history,
           config: {
-            systemInstruction: SYSTEM_PROMPT,
-            maxOutputTokens: 400,
+            systemInstruction: dynamicSystemPrompt,
+            maxOutputTokens: 450,
           },
         });
         return res.json({ reply: response.text || "Sorry, I couldn't come up with a response." });

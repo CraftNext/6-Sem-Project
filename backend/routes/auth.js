@@ -145,6 +145,14 @@ router.post("/login", [
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    const token = generateToken(user._id);
+    res.cookie("cn_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
     res.json({
       _id: user._id,
       name: user.name,
@@ -152,7 +160,7 @@ router.post("/login", [
       role: user.role,
       shopName: user.shopName,
       avatar: user.avatar,
-      token: generateToken(user._id),
+      token,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -185,12 +193,20 @@ router.put("/profile", protect, async (req, res) => {
     }
 
     const updated = await user.save();
+    const token = generateToken(updated._id);
+    res.cookie("cn_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
     res.json({
       _id: updated._id,
       name: updated.name,
       email: updated.email,
       role: updated.role,
-      token: generateToken(updated._id),
+      token,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -349,6 +365,12 @@ router.post("/reset-password", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+// @POST /api/auth/logout - clear cookie
+router.post("/logout", (req, res) => {
+  res.clearCookie("cn_token");
+  res.json({ message: "Logged out successfully" });
 });
 
 module.exports = router;

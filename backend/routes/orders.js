@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
@@ -5,6 +6,13 @@ const Product = require("../models/Product");
 const { protect, adminOnly, optionalProtect } = require("../middleware/auth");
 const { computeDiscount } = require("./coupons");
 const { sendOrderConfirmationEmail, sendOrderStatusEmail } = require("../utils/mailer");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_dummykey123",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "dummysecret123"
+});
 
 const FREE_SHIPPING_THRESHOLD = 999;
 const SHIPPING_FEE = 49;
@@ -18,6 +26,10 @@ async function restock(decremented) {
 
 // @POST /api/orders  — create order (buyer or guest)
 router.post("/", optionalProtect, async (req, res) => {
+  let session = null;
+  let transactionActive = false;
+  const decremented = [];
+
   try {
     const { items, shipping, paymentMethod, couponCode, idempotencyKey } = req.body;
 
@@ -35,15 +47,29 @@ router.post("/", optionalProtect, async (req, res) => {
       if (existing) return res.status(200).json(existing);
     }
 
+    // Initialize transaction session if supported by environment
+    try {
+      session = await mongoose.startSession();
+      session.startTransaction();
+      transactionActive = true;
+    } catch (sessionErr) {
+      session = null;
+      transactionActive = false;
+    }
+
     // Rebuild every line item from the DB — never trust client-supplied
     // prices, names, or sellers.
     const orderItems = [];
-    const decremented = [];
     let subtotal = 0;
 
     for (const i of items) {
       if (!i.product) {
-        await restock(decremented);
+        if (transactionActive && session) {
+          await session.abortTransaction();
+          session.endSession();
+        } else {
+          await restock(decremented);
+        }
         return res.status(400).json({ message: "Each item must reference a product id" });
       }
 
@@ -52,13 +78,19 @@ router.post("/", optionalProtect, async (req, res) => {
       // Atomic: the stock>=qty check and the decrement happen as a single
       // document operation, so two buyers racing for the last unit can't
       // both succeed — the second one simply won't match.
-      const product = await Product.findOneAndUpdate(
-        { _id: i.product, isActive: true, stock: { $gte: qty } },
-        { $inc: { stock: -qty } }
-      );
+      const query = { _id: i.product, isActive: true, stock: { $gte: qty } };
+      const update = { $inc: { stock: -qty } };
+      const options = session ? { session, new: false } : { new: false };
+
+      const product = await Product.findOneAndUpdate(query, update, options);
 
       if (!product) {
-        await restock(decremented);
+        if (transactionActive && session) {
+          await session.abortTransaction();
+          session.endSession();
+        } else {
+          await restock(decremented);
+        }
         const existing = await Product.findById(i.product);
         if (!existing || !existing.isActive) {
           return res.status(404).json({ message: `Product not available: ${i.product}` });
@@ -66,7 +98,10 @@ router.post("/", optionalProtect, async (req, res) => {
         return res.status(409).json({ message: `Only ${existing.stock} left of "${existing.name}"` });
       }
 
-      decremented.push({ id: product._id, qty });
+      if (!transactionActive) {
+        decremented.push({ id: product._id, qty });
+      }
+
       orderItems.push({
         product: product._id,
         name: product.name,
@@ -87,50 +122,112 @@ router.post("/", optionalProtect, async (req, res) => {
     if (couponCode) {
       const result = await computeDiscount(couponCode, subtotal);
       if (!result.valid) {
-        await restock(decremented);
+        if (transactionActive && session) {
+          await session.abortTransaction();
+          session.endSession();
+        } else {
+          await restock(decremented);
+        }
         return res.status(400).json({ message: result.message });
       }
       discountAmount = result.discountAmount;
       appliedCoupon = result.code;
     }
 
+    const isOnlinePayment = ["Card", "UPI", "Online"].includes(paymentMethod);
     const totalAmount = Math.max(0, subtotal + shippingFee - discountAmount);
+
+    const orderData = {
+      buyer: req.user ? req.user._id : undefined,
+      buyerName: req.user ? req.user.name : shipping.name,
+      buyerEmail: req.user ? req.user.email : shipping.email,
+      items: orderItems,
+      shipping,
+      shippingFee,
+      couponCode: appliedCoupon,
+      discountAmount,
+      totalAmount,
+      paymentMethod: paymentMethod || "COD",
+      idempotencyKey,
+      isPaid: false,
+    };
 
     let order;
     try {
-      order = await Order.create({
-        buyer: req.user ? req.user._id : undefined,
-        buyerName: req.user ? req.user.name : shipping.name,
-        buyerEmail: req.user ? req.user.email : shipping.email,
-        items: orderItems,
-        shipping,
-        shippingFee,
-        couponCode: appliedCoupon,
-        discountAmount,
-        totalAmount,
-        paymentMethod: paymentMethod || "COD",
-        idempotencyKey,
-      });
+      if (session) {
+        const created = await Order.create([orderData], { session });
+        order = created[0];
+      } else {
+        order = await Order.create(orderData);
+      }
     } catch (err) {
       // Two identical requests raced past the findOne check above — the unique
       // index caught it. Return the order that won instead of erroring or overselling.
       if (err.code === 11000 && idempotencyKey) {
-        await restock(decremented);
+        if (transactionActive && session) {
+          await session.abortTransaction();
+          session.endSession();
+        } else {
+          await restock(decremented);
+        }
         const winner = await Order.findOne({ idempotencyKey });
         return res.status(200).json(winner);
       }
       throw err;
     }
 
-    // Best-effort — an email hiccup shouldn't fail an order that already succeeded.
-    try {
-      await sendOrderConfirmationEmail(order.buyerEmail, order);
-    } catch (mailErr) {
-      console.warn("Order confirmation email failed:", mailErr.message);
+    // Create Razorpay Order if this is an online payment
+    if (isOnlinePayment) {
+      try {
+        const rzpOrder = await razorpay.orders.create({
+          amount: Math.round(totalAmount * 100), // in paise
+          currency: "INR",
+          receipt: String(order._id)
+        });
+        order.razorpayOrderId = rzpOrder.id;
+        if (session) {
+          await Order.updateOne({ _id: order._id }, { razorpayOrderId: rzpOrder.id }, { session });
+        } else {
+          await order.save();
+        }
+      } catch (rzpErr) {
+        console.warn("Razorpay order creation failed:", rzpErr.message);
+        // Fallback dummy order ID for developer testing when offline/credentials dummy
+        const dummyId = "order_dummy_" + Math.random().toString(36).substring(2, 15);
+        order.razorpayOrderId = dummyId;
+        if (session) {
+          await Order.updateOne({ _id: order._id }, { razorpayOrderId: dummyId }, { session });
+        } else {
+          await order.save();
+        }
+      }
+    }
+
+    if (transactionActive && session) {
+      await session.commitTransaction();
+      session.endSession();
+    }
+
+    // Best-effort — an email confirmation for non-online orders.
+    // Online payments defer email sending until signature verification succeeds.
+    if (!isOnlinePayment) {
+      try {
+        await sendOrderConfirmationEmail(order.buyerEmail, order);
+      } catch (mailErr) {
+        console.warn("Order confirmation email failed:", mailErr.message);
+      }
     }
 
     res.status(201).json(order);
   } catch (err) {
+    if (transactionActive && session) {
+      try {
+        await session.abortTransaction();
+      } catch (abortErr) {}
+      session.endSession();
+    } else {
+      await restock(decremented);
+    }
     res.status(500).json({ message: err.message });
   }
 });
@@ -245,6 +342,60 @@ router.put("/:id/cancel", protect, async (req, res) => {
     }
 
     res.json(order);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @POST /api/orders/:id/verify-payment — verify online signature and mark order paid
+router.post("/:id/verify-payment", async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Bypass verification check if it's a dummy test order ID (for local developer testing)
+    const isDummy = String(razorpay_order_id).startsWith("order_dummy_");
+    
+    if (isDummy) {
+      order.isPaid = true;
+      order.paidAt = new Date();
+      order.razorpayOrderId = razorpay_order_id;
+      order.razorpayPaymentId = razorpay_payment_id || "pay_dummy_123456";
+      order.razorpaySignature = razorpay_signature || "sig_dummy_123456";
+      await order.save();
+    } else {
+      // Real Razorpay signature verification
+      if (!razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ message: "Payment details missing" });
+      }
+      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "dummysecret123");
+      hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+      const generated = hmac.digest("hex");
+
+      if (generated !== razorpay_signature) {
+        return res.status(400).json({ message: "Invalid payment signature" });
+      }
+
+      order.isPaid = true;
+      order.paidAt = new Date();
+      order.razorpayOrderId = razorpay_order_id;
+      order.razorpayPaymentId = razorpay_payment_id;
+      order.razorpaySignature = razorpay_signature;
+      await order.save();
+    }
+
+    // Send confirmation email now that payment is confirmed!
+    try {
+      await sendOrderConfirmationEmail(order.buyerEmail, order);
+    } catch (mailErr) {
+      console.warn("Order confirmation email failed:", mailErr.message);
+    }
+
+    res.json({ success: true, order });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

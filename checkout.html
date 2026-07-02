@@ -248,6 +248,37 @@
   </nav>
 </header>
 
+<!-- PAYMENT MODAL -->
+<div class="payment-modal" id="paymentModal">
+  <div class="payment-modal-box">
+    <div class="payment-modal-header">
+      <h3>CraftNext Secure Checkout</h3>
+      <button class="payment-modal-close" onclick="closePaymentModal()">&times;</button>
+    </div>
+    <div class="payment-modal-amount" id="paymentModalAmount">₹0</div>
+    <div class="payment-modal-fields">
+      <div class="payment-modal-field">
+        <label>Card Number</label>
+        <input type="text" placeholder="4111 2222 3333 4444" maxlength="19">
+      </div>
+      <div class="form-row">
+        <div class="payment-modal-field">
+          <label>Expiry Date</label>
+          <input type="text" placeholder="12/28" maxlength="5">
+        </div>
+        <div class="payment-modal-field">
+          <label>CVV</label>
+          <input type="password" placeholder="123" maxlength="3">
+        </div>
+      </div>
+    </div>
+    <div class="payment-modal-actions">
+      <button class="payment-btn-fail" onclick="simulatePayment(false)">Fail Payment</button>
+      <button class="payment-btn-success" onclick="simulatePayment(true)">Pay & Complete</button>
+    </div>
+  </div>
+</div>
+
 <!-- SUCCESS OVERLAY -->
 <div class="success-overlay" id="successOverlay">
   <div class="success-box">
@@ -309,7 +340,7 @@
       <h2 style="margin-top:24px">Payment Method</h2>
       <div class="payment-options">
         <div class="pay-option selected" onclick="selectPayment('COD', this)">Cash on Delivery</div>
-        <div class="pay-option" onclick="selectPayment('Online', this)">Online (Coming Soon)</div>
+        <div class="pay-option" onclick="selectPayment('Online', this)">Online Payment (Mock)</div>
       </div>
 
       <button class="place-btn" id="placeBtn" onclick="placeOrder()">
@@ -337,6 +368,7 @@
 </div>
 
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="api.js"></script>
 <script src="script.js"></script>
 <script>
@@ -353,12 +385,6 @@ const checkoutIdempotencyKey = (crypto.randomUUID ? crypto.randomUUID() : `${Dat
 
 function selectPayment(method, el) {
   selectedPayment = method;
-  if (method === "Online") {
-    const errEl = document.getElementById("checkoutError");
-    errEl.textContent = "Online payment coming soon. Please use Cash on Delivery.";
-    errEl.style.display = "block";
-    return;
-  }
   document.getElementById("checkoutError").style.display = "none";
   document.querySelectorAll(".pay-option").forEach(o => o.classList.remove("selected"));
   el.classList.add("selected");
@@ -471,6 +497,41 @@ function applySavedAddress(index) {
   document.getElementById("shipPincode").value = a.pincode || "";
 }
 
+let currentOrderId = null;
+let currentRzpOrderId = null;
+
+function closePaymentModal() {
+  document.getElementById("paymentModal").classList.remove("show");
+}
+
+async function simulatePayment(success) {
+  closePaymentModal();
+  const btn = document.getElementById("placeBtn");
+  const errEl = document.getElementById("checkoutError");
+  
+  if (success) {
+    try {
+      btn.textContent = "Completing Order...";
+      const result = await Orders.verifyPayment(currentOrderId, {
+        razorpay_order_id: currentRzpOrderId,
+        razorpay_payment_id: "pay_dummy_" + Math.random().toString(36).substring(2, 10),
+        razorpay_signature: "sig_dummy_" + Math.random().toString(36).substring(2, 10)
+      });
+      completeCheckoutSuccess(result.order);
+    } catch (e) {
+      errEl.textContent = e.message || "Failed to confirm payment.";
+      errEl.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Place Order";
+    }
+  } else {
+    errEl.textContent = "Payment transaction was declined/failed. Please try again.";
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Place Order";
+  }
+}
+
 /* ——— PLACE ORDER ——— */
 async function placeOrder() {
   const name    = document.getElementById("shipName").value.trim();
@@ -497,30 +558,142 @@ async function placeOrder() {
 
   const btn = document.getElementById("placeBtn");
   btn.disabled = true;
-  btn.textContent = "Placing Order...";
+  btn.textContent = "Processing...";
   errEl.style.display = "none";
 
+  if (selectedPayment === "Online") {
+    submitOnlineOrder();
+    return;
+  }
+
+  submitOrder("COD");
+}
+
+async function submitOnlineOrder() {
+  const name    = document.getElementById("shipName").value.trim();
+  const email   = document.getElementById("shipEmail").value.trim();
+  const phone   = document.getElementById("shipPhone").value.trim();
+  const address = document.getElementById("shipAddress").value.trim();
+  const city    = document.getElementById("shipCity").value.trim();
+  const pincode = document.getElementById("shipPincode").value.trim();
+  const cart = getCart();
+  const errEl = document.getElementById("checkoutError");
+  const btn = document.getElementById("placeBtn");
+
   const orderPayload = {
-    // Send only product id + qty — the server looks up the real price/name/seller.
     items: cart.map(item => ({ product: item.id, qty: item.qty })),
     shipping: { name, email, phone, address, city, pincode },
-    paymentMethod: selectedPayment,
+    paymentMethod: "Online",
     couponCode: appliedCoupon || undefined,
     idempotencyKey: checkoutIdempotencyKey,
   };
 
   try {
-    // Works for both guests and logged-in buyers — the server accepts either.
     const order = await Orders.create(orderPayload);
-    document.getElementById("successOrderId").textContent = `Order ID: #${order._id.slice(-6).toUpperCase()}`;
+    currentOrderId = order._id;
+    currentRzpOrderId = order.razorpayOrderId;
 
-    // Clear cart
-    localStorage.removeItem("cart");
-    updateCartCount();
+    const isDummy = String(currentRzpOrderId).startsWith("order_dummy_");
 
-    // Show success
-    document.getElementById("successOverlay").classList.add("show");
+    if (isDummy) {
+      // Fallback checkout modal for test settings / missing keys
+      const totalText = document.getElementById("summaryTotal").textContent;
+      document.getElementById("paymentModalAmount").textContent = totalText;
+      document.getElementById("paymentModal").classList.add("show");
+    } else {
+      launchRazorpayPayment(order);
+    }
+  } catch (e) {
+    errEl.textContent = e.message || "Order creation failed. Please try again.";
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Place Order";
+  }
+}
 
+function launchRazorpayPayment(order) {
+  const btn = document.getElementById("placeBtn");
+  const errEl = document.getElementById("checkoutError");
+
+  const options = {
+    key: "rzp_test_dummykey123", // test key launches dev payment popups
+    amount: Math.round(order.totalAmount * 100),
+    currency: "INR",
+    name: "CraftNext Marketplace",
+    description: "Secure Checkout Payment",
+    order_id: order.razorpayOrderId,
+    handler: async function (response) {
+      try {
+        btn.textContent = "Verifying Payment...";
+        const result = await Orders.verifyPayment(order._id, {
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature
+        });
+        completeCheckoutSuccess(result.order);
+      } catch (verifyErr) {
+        errEl.textContent = verifyErr.message || "Payment signature verification failed.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Place Order";
+      }
+    },
+    prefill: {
+      name: order.buyerName,
+      email: order.buyerEmail,
+      contact: order.shipping.phone
+    },
+    theme: {
+      color: "#82786a"
+    },
+    modal: {
+      ondismiss: function () {
+        errEl.textContent = "Payment checkout was cancelled.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Place Order";
+      }
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+}
+
+function completeCheckoutSuccess(order) {
+  document.getElementById("successOrderId").textContent = `Order ID: #${order._id.slice(-6).toUpperCase()}`;
+
+  // Clear cart in both session and local storage
+  sessionStorage.removeItem("cart");
+  localStorage.removeItem("cart");
+  updateCartCount();
+
+  // Show success
+  document.getElementById("successOverlay").classList.add("show");
+}
+
+async function submitOrder(method) {
+  const name    = document.getElementById("shipName").value.trim();
+  const email   = document.getElementById("shipEmail").value.trim();
+  const phone   = document.getElementById("shipPhone").value.trim();
+  const address = document.getElementById("shipAddress").value.trim();
+  const city    = document.getElementById("shipCity").value.trim();
+  const pincode = document.getElementById("shipPincode").value.trim();
+  const cart = getCart();
+  const errEl = document.getElementById("checkoutError");
+  const btn = document.getElementById("placeBtn");
+
+  const orderPayload = {
+    items: cart.map(item => ({ product: item.id, qty: item.qty })),
+    shipping: { name, email, phone, address, city, pincode },
+    paymentMethod: method,
+    couponCode: appliedCoupon || undefined,
+    idempotencyKey: checkoutIdempotencyKey,
+  };
+
+  try {
+    const order = await Orders.create(orderPayload);
+    completeCheckoutSuccess(order);
   } catch (e) {
     errEl.textContent = e.message || "Order failed. Please try again.";
     errEl.style.display = "block";

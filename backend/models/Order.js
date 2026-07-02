@@ -42,6 +42,10 @@ const orderSchema = new mongoose.Schema(
     isPaid: { type: Boolean, default: false },
     paidAt: Date,
 
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    razorpaySignature: String,
+
     // Client-generated, one per checkout attempt — lets a retried/double-submitted
     // request return the original order instead of creating (and re-charging) a duplicate.
     idempotencyKey: { type: String },
