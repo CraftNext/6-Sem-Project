@@ -23,9 +23,16 @@ function showToast(message, type = "info") {
    and any seeded products share one stable identity.
    Item shape: { id, name, price, img, seller, qty }                     */
 
+const CART_BOOT_KEY = "craftnext-cart-boot";
+
+if (!window.name.startsWith(CART_BOOT_KEY)) {
+    window.name = `${CART_BOOT_KEY}:${Date.now()}`;
+    sessionStorage.removeItem("cart");
+}
+
 function getCart() {
     try {
-        const data = JSON.parse(localStorage.getItem("cart")) || [];
+        const data = JSON.parse(sessionStorage.getItem("cart")) || [];
         return Array.isArray(data) ? data : [];
     } catch {
         return [];
@@ -33,7 +40,7 @@ function getCart() {
 }
 
 function saveCart(cart) {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    sessionStorage.setItem("cart", JSON.stringify(cart));
 }
 
 function productId(product) {

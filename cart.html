@@ -270,7 +270,7 @@ function renderCart() {
 
       <div class="cart-item-actions">
         <div class="item-total">₹${(item.price * item.qty).toLocaleString("en-IN")}</div>
-        <button class="remove-btn" onclick="removeFromCart('${item.id}')" title="Remove" aria-label="Remove item">
+        <button class="remove-btn" onclick="removeFromCart(${idx})" title="Remove" aria-label="Remove item">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
         </button>
       </div>
@@ -320,9 +320,29 @@ function changeQty(idx, delta) {
   renderCart();
 }
 
+function removeFromCart(target) {
+  const cart = getCart();
+  let nextCart = cart;
+
+  if (Number.isInteger(target) || /^\d+$/.test(String(target))) {
+    const index = Number(target);
+    nextCart = cart.filter((_, idx) => idx !== index);
+  } else {
+    const targetId = String(target);
+    nextCart = cart.filter((item) => {
+      const ids = [item.id, item._id, item.productId].filter(Boolean).map(String);
+      return !ids.includes(targetId);
+    });
+  }
+
+  saveCart(nextCart);
+  updateCartCount();
+  renderCart();
+}
+
 function clearCart() {
   if (confirm("Remove all items from cart?")) {
-    localStorage.removeItem("cart");
+    sessionStorage.removeItem("cart");
     updateCartCount();
     renderCart();
   }

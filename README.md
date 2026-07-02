@@ -20,7 +20,7 @@ products and manage orders; an admin oversees users, products and revenue.
 
 - Email/OTP signup, JWT login, role-based access (**buyer / seller / admin**)
 - Product catalogue with search, categories and per-seller shops
-- Cart and wishlist (localStorage, keyed by product id)
+- Cart (sessionStorage, keyed by product id) and wishlist (localStorage)
 - Checkout → orders (Cash on Delivery), with **server-side price & stock validation**
 - Product **reviews & ratings** (one per user, aggregate recomputed on submit)
 - Seller dashboard (add / remove products with image upload)
@@ -134,4 +134,4 @@ curl -X POST http://localhost:5000/api/admin/seed-admin \
 
 - Online payment is a stub — only **Cash on Delivery** is wired up.
 - No product pagination (the catalogue is intentionally small).
-- Cart/wishlist live in `localStorage`, not synced to the account.
+- Cart lives in `sessionStorage` and wishlist in `localStorage`, both not synced to the account.
