@@ -127,6 +127,7 @@ const Products = {
   create: (payload) => apiRequest("/products", "POST", payload, true),
   update: (id, payload) => apiRequest(`/products/${id}`, "PUT", payload, true),
   delete: (id) => apiRequest(`/products/${id}`, "DELETE", null, true),
+  deleteForever: (id) => apiRequest(`/products/${id}/permanent`, "DELETE", null, true),
   reviews: (id) => apiRequest(`/products/${id}/reviews`),
   addReview: (id, payload) => apiRequest(`/products/${id}/reviews`, "POST", payload, true),
   topSeller: () => apiRequest("/products/top-seller"),

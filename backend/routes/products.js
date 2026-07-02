@@ -293,6 +293,20 @@ router.delete("/:id", protect, sellerOrAdmin, async (req, res) => {
 });
 
 
+// @DELETE /api/products/:id/permanent — admin only. Actually removes the
+// document (the route above just deactivates it). Orders keep their own
+// copy of product name/price/img, so past orders are unaffected.
+router.delete("/:id/permanent", protect, adminOnly, async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json({ message: "Product permanently deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 /* ================= REVIEWS ================= */
 
 // @GET /api/products/:id/reviews — public

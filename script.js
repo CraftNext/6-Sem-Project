@@ -66,7 +66,10 @@ function addToCart(product) {
             name: product.name,
             price: Number(product.price),
             img: product.img || "",
-            seller: product.seller || product.sellerName || "",
+            // sellerName is always a denormalized plain string; product.seller can be
+            // either a bare id (list views) or a populated object (product.html) —
+            // never use it directly as display text.
+            seller: product.sellerName || (typeof product.seller === "string" ? product.seller : ""),
             qty: 1
         });
     }
