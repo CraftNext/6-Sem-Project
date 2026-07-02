@@ -46,6 +46,22 @@ if (process.env.NODE_ENV === "production" && !process.env.CLIENT_URL) {
   process.exit(1);
 }
 
+const clientUrl = process.env.CLIENT_URL || "http://localhost:5500";
+const allowedOrigins = new Set([clientUrl]);
+
+try {
+  const parsedClientUrl = new URL(clientUrl);
+  if (parsedClientUrl.hostname === "localhost" || parsedClientUrl.hostname === "127.0.0.1") {
+    const devOrigin = `${parsedClientUrl.protocol}//${parsedClientUrl.hostname}:${parsedClientUrl.port}`;
+    const alternateHost = parsedClientUrl.hostname === "localhost" ? "127.0.0.1" : "localhost";
+    allowedOrigins.add(devOrigin);
+    allowedOrigins.add(`${parsedClientUrl.protocol}//${alternateHost}:${parsedClientUrl.port}`);
+  }
+} catch {
+  // Ignore malformed CLIENT_URL here; the app will still fail naturally if it
+  // is truly unusable for auth redirects or CORS.
+}
+
 // Connect to MongoDB
 connectDB();
 
@@ -56,7 +72,11 @@ app.use(helmet({
 }));
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(cors({
-  origin: process.env.CLIENT_URL || "*",
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.has(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked for origin ${origin}`));
+  },
   credentials: true,
 }));
 app.use(express.json());
