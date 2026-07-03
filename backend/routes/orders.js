@@ -357,45 +357,63 @@ router.post("/:id/verify-payment", async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Bypass verification check if it's a dummy test order ID (for local developer testing)
-    const isDummy = String(razorpay_order_id).startsWith("order_dummy_");
-    
+    // Idempotent + replay-safe: an already-paid order returns success without
+    // re-marking or re-emailing. Blocks the "verify the same order twice" replay.
+    if (order.isPaid) {
+      return res.json({ success: true, order, alreadyPaid: true });
+    }
+
+    // The client-submitted order id MUST match the one the server minted for
+    // this order at creation. Without this, the id is attacker-controlled and
+    // the whole verification means nothing.
+    if (!order.razorpayOrderId || razorpay_order_id !== order.razorpayOrderId) {
+      return res.status(400).json({ message: "Payment order mismatch" });
+    }
+
+    // "Dummy" is decided from SERVER state (the id we stored), never from the
+    // client body — and never in production. Previously any request could set
+    // razorpay_order_id="order_dummy_x" and mark any order paid for free.
+    const isDummy = order.razorpayOrderId.startsWith("order_dummy_");
+
     if (isDummy) {
-      order.isPaid = true;
-      order.paidAt = new Date();
-      order.razorpayOrderId = razorpay_order_id;
+      if (process.env.NODE_ENV === "production") {
+        return res.status(400).json({ message: "Payment verification failed" });
+      }
       order.razorpayPaymentId = razorpay_payment_id || "pay_dummy_123456";
       order.razorpaySignature = razorpay_signature || "sig_dummy_123456";
-      await order.save();
     } else {
-      // Real Razorpay signature verification
+      // Real Razorpay HMAC verification.
       if (!razorpay_payment_id || !razorpay_signature) {
         return res.status(400).json({ message: "Payment details missing" });
       }
-      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "dummysecret123");
-      hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+      if (!process.env.RAZORPAY_KEY_SECRET) {
+        // No secret configured — refuse rather than verify against a known
+        // placeholder (which an attacker could sign against).
+        return res.status(500).json({ message: "Payment gateway not configured" });
+      }
+      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+      hmac.update(order.razorpayOrderId + "|" + razorpay_payment_id);
       const generated = hmac.digest("hex");
 
-      if (generated !== razorpay_signature) {
+      // Constant-time compare — avoids a timing side-channel on the signature.
+      const sigBuf = Buffer.from(razorpay_signature, "utf8");
+      const genBuf = Buffer.from(generated, "utf8");
+      if (sigBuf.length !== genBuf.length || !crypto.timingSafeEqual(sigBuf, genBuf)) {
         return res.status(400).json({ message: "Invalid payment signature" });
       }
 
-      order.isPaid = true;
-      order.paidAt = new Date();
-      order.razorpayOrderId = razorpay_order_id;
       order.razorpayPaymentId = razorpay_payment_id;
       order.razorpaySignature = razorpay_signature;
-      await order.save();
     }
 
-    // Send confirmation email now that payment is confirmed!
-    try {
-      await sendOrderConfirmationEmail(order.buyerEmail, order);
-    } catch (mailErr) {
-      console.warn("Order confirmation email failed:", mailErr.message);
-    }
+    order.isPaid = true;
+    order.paidAt = new Date();
+    await order.save();
 
+    // Respond first; email is best-effort and must not delay the response.
     res.json({ success: true, order });
+    sendOrderConfirmationEmail(order.buyerEmail, order)
+      .catch((mailErr) => console.warn("Order confirmation email failed:", mailErr.message));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

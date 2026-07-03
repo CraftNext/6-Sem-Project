@@ -640,3 +640,33 @@ function initAutocompleteSearch() {
 }
 
 document.addEventListener("DOMContentLoaded", initAutocompleteSearch);
+
+
+/* ================= SCROLL REVEAL =================
+   Sections fade up as they enter the viewport. Class is only ever
+   added here, so pages render normally if JS fails; skipped entirely
+   for users who prefer reduced motion. */
+
+function initScrollReveal() {
+    if (!("IntersectionObserver" in window)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const targets = document.querySelectorAll("section");
+    if (!targets.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("reveal-in");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+
+    targets.forEach((el) => {
+        el.classList.add("reveal");
+        observer.observe(el);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initScrollReveal);
