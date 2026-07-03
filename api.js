@@ -182,6 +182,8 @@ const Admin = {
     const q = new URLSearchParams(params).toString();
     return apiRequest(`/admin/orders${q ? "?" + q : ""}`, "GET", null, true);
   },
+  deleteOrder: (id) => apiRequest(`/admin/orders/${id}`, "DELETE", null, true),
+  clearAnalytics: () => apiRequest("/admin/clear-analytics", "DELETE", null, true),
   products: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return apiRequest(`/admin/products${q ? "?" + q : ""}`, "GET", null, true);

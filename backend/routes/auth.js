@@ -11,9 +11,11 @@ const { protect } = require("../middleware/auth");
 const { sendOTPEmail, sendResetEmail } = require("../utils/mailer");
 
 
-// Generate JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+// Generate JWT. Carries the role so pure authorization checks can read it
+// straight from the token; middleware still loads the fresh user doc so a
+// suspension or role change takes effect immediately (not at token expiry).
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "30d" });
 };
 
 /* ================= AVATAR UPLOAD ================= */
@@ -145,7 +147,7 @@ router.post("/login", [
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
     res.cookie("cn_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -193,7 +195,7 @@ router.put("/profile", protect, async (req, res) => {
     }
 
     const updated = await user.save();
-    const token = generateToken(updated._id);
+    const token = generateToken(updated);
     res.cookie("cn_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

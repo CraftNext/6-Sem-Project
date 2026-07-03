@@ -71,6 +71,11 @@ try {
 // Connect to MongoDB
 connectDB();
 
+// Background sweep: reclaim stock from online orders whose payment window
+// lapsed without completing (see utils/reclaimStock).
+const { startReservationSweep } = require("./utils/reclaimStock");
+startReservationSweep();
+
 // Middleware
 app.use(helmet({
   // Static image responses need to be embeddable cross-origin (frontend on a different port).

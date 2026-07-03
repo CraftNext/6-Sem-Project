@@ -134,8 +134,18 @@ router.post("/", optionalProtect, async (req, res) => {
       appliedCoupon = result.code;
     }
 
-    const isOnlinePayment = ["Card", "UPI", "Online"].includes(paymentMethod);
+    // Normalize + whitelist the payment method (case-insensitive) so it can't
+    // be an arbitrary persisted string, and so "online" vs "Online" agree.
+    const ONLINE_METHODS = { card: "Card", upi: "UPI", online: "Online" };
+    const rawMethod = String(paymentMethod || "COD").trim();
+    const isOnlinePayment = Object.prototype.hasOwnProperty.call(ONLINE_METHODS, rawMethod.toLowerCase());
+    const normalizedMethod = isOnlinePayment ? ONLINE_METHODS[rawMethod.toLowerCase()]
+      : (rawMethod.toLowerCase() === "cod" ? "COD" : "COD");
     const totalAmount = Math.max(0, subtotal + shippingFee - discountAmount);
+
+    // Online orders hold their decremented stock only for this window; the
+    // sweep reclaims it if payment never completes. COD reserves nothing.
+    const RESERVATION_MINUTES = 15;
 
     const orderData = {
       buyer: req.user ? req.user._id : undefined,
@@ -147,9 +157,12 @@ router.post("/", optionalProtect, async (req, res) => {
       couponCode: appliedCoupon,
       discountAmount,
       totalAmount,
-      paymentMethod: paymentMethod || "COD",
+      paymentMethod: normalizedMethod,
       idempotencyKey,
       isPaid: false,
+      ...(isOnlinePayment && {
+        reservationExpiresAt: new Date(Date.now() + RESERVATION_MINUTES * 60 * 1000),
+      }),
     };
 
     let order;
@@ -176,49 +189,46 @@ router.post("/", optionalProtect, async (req, res) => {
       throw err;
     }
 
-    // Create Razorpay Order if this is an online payment
-    if (isOnlinePayment) {
-      try {
-        const rzpOrder = await razorpay.orders.create({
-          amount: Math.round(totalAmount * 100), // in paise
-          currency: "INR",
-          receipt: String(order._id)
-        });
-        order.razorpayOrderId = rzpOrder.id;
-        if (session) {
-          await Order.updateOne({ _id: order._id }, { razorpayOrderId: rzpOrder.id }, { session });
-        } else {
-          await order.save();
-        }
-      } catch (rzpErr) {
-        console.warn("Razorpay order creation failed:", rzpErr.message);
-        // Fallback dummy order ID for developer testing when offline/credentials dummy
-        const dummyId = "order_dummy_" + Math.random().toString(36).substring(2, 15);
-        order.razorpayOrderId = dummyId;
-        if (session) {
-          await Order.updateOne({ _id: order._id }, { razorpayOrderId: dummyId }, { session });
-        } else {
-          await order.save();
-        }
-      }
-    }
-
+    // Commit the DB writes (stock decrement + order) BEFORE touching Razorpay.
+    // The external gateway call must not run inside an open transaction — it
+    // would hold row locks + a pooled connection open across a multi-second
+    // network round-trip and serialize checkouts under load.
     if (transactionActive && session) {
       await session.commitTransaction();
       session.endSession();
+      session = null;
+      transactionActive = false;
     }
 
-    // Best-effort — an email confirmation for non-online orders.
-    // Online payments defer email sending until signature verification succeeds.
-    if (!isOnlinePayment) {
+    // Now that the order is durable, mint the Razorpay order (online only).
+    // A gateway failure falls back to a dummy id so local/offline dev still
+    // works; the dummy id is only ever *honored* outside production.
+    if (isOnlinePayment) {
+      let rzpOrderId;
       try {
-        await sendOrderConfirmationEmail(order.buyerEmail, order);
-      } catch (mailErr) {
-        console.warn("Order confirmation email failed:", mailErr.message);
+        const rzpOrder = await razorpay.orders.create({
+          amount: Math.round(totalAmount * 100), // paise
+          currency: "INR",
+          receipt: String(order._id),
+        });
+        rzpOrderId = rzpOrder.id;
+      } catch (rzpErr) {
+        console.warn("Razorpay order creation failed:", rzpErr.message);
+        rzpOrderId = "order_dummy_" + crypto.randomBytes(8).toString("hex");
       }
+      order.razorpayOrderId = rzpOrderId;
+      await Order.updateOne({ _id: order._id }, { razorpayOrderId: rzpOrderId });
     }
 
     res.status(201).json(order);
+
+    // Fire-and-forget confirmation for COD/non-online orders — off the request
+    // path so SMTP latency never inflates checkout time. Online orders defer
+    // their email to /verify-payment (after payment is confirmed).
+    if (!isOnlinePayment) {
+      sendOrderConfirmationEmail(order.buyerEmail, order)
+        .catch((mailErr) => console.warn("Order confirmation email failed:", mailErr.message));
+    }
   } catch (err) {
     if (transactionActive && session) {
       try {
@@ -316,18 +326,25 @@ router.put("/:id/status", protect, async (req, res) => {
 // @PUT /api/orders/:id/cancel  — buyer cancels their own order while still pending
 router.put("/:id/cancel", protect, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: "Order not found" });
+    // Atomic guard: flip pending→cancelled in one operation, scoped to the
+    // owner. If two cancels race, only one matches — so stock is restored
+    // exactly once instead of double-incremented (phantom inventory).
+    const order = await Order.findOneAndUpdate(
+      { _id: req.params.id, buyer: req.user._id, status: "pending" },
+      { status: "cancelled" },
+      { new: true }
+    );
 
-    if (!order.buyer || order.buyer.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-    if (order.status !== "pending") {
+    if (!order) {
+      // Distinguish "not yours / doesn't exist" from "not cancellable" so the
+      // client can show the right message.
+      const existing = await Order.findById(req.params.id);
+      if (!existing) return res.status(404).json({ message: "Order not found" });
+      if (!existing.buyer || existing.buyer.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
       return res.status(400).json({ message: "Only pending orders can be cancelled" });
     }
-
-    order.status = "cancelled";
-    await order.save();
 
     for (const item of order.items) {
       if (item.product) {
@@ -335,13 +352,10 @@ router.put("/:id/cancel", protect, async (req, res) => {
       }
     }
 
-    try {
-      await sendOrderStatusEmail(order.buyerEmail, order);
-    } catch (mailErr) {
-      console.warn("Order cancellation email failed:", mailErr.message);
-    }
-
     res.json(order);
+
+    sendOrderStatusEmail(order.buyerEmail, order)
+      .catch((mailErr) => console.warn("Order cancellation email failed:", mailErr.message));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -375,12 +389,13 @@ router.post("/:id/verify-payment", async (req, res) => {
     // razorpay_order_id="order_dummy_x" and mark any order paid for free.
     const isDummy = order.razorpayOrderId.startsWith("order_dummy_");
 
+    let paidPaymentId, paidSignature;
     if (isDummy) {
       if (process.env.NODE_ENV === "production") {
         return res.status(400).json({ message: "Payment verification failed" });
       }
-      order.razorpayPaymentId = razorpay_payment_id || "pay_dummy_123456";
-      order.razorpaySignature = razorpay_signature || "sig_dummy_123456";
+      paidPaymentId = razorpay_payment_id || "pay_dummy_123456";
+      paidSignature = razorpay_signature || "sig_dummy_123456";
     } else {
       // Real Razorpay HMAC verification.
       if (!razorpay_payment_id || !razorpay_signature) {
@@ -402,17 +417,37 @@ router.post("/:id/verify-payment", async (req, res) => {
         return res.status(400).json({ message: "Invalid payment signature" });
       }
 
-      order.razorpayPaymentId = razorpay_payment_id;
-      order.razorpaySignature = razorpay_signature;
+      paidPaymentId = razorpay_payment_id;
+      paidSignature = razorpay_signature;
     }
 
-    order.isPaid = true;
-    order.paidAt = new Date();
-    await order.save();
+    // Atomic mark-paid: only if the order is still unpaid AND hasn't been
+    // cancelled by the reservation sweep in the meantime. Clears the
+    // reservation so the sweep never touches a paid order.
+    const paid = await Order.findOneAndUpdate(
+      { _id: order._id, isPaid: false, status: { $ne: "cancelled" } },
+      {
+        isPaid: true,
+        paidAt: new Date(),
+        razorpayPaymentId: paidPaymentId,
+        razorpaySignature: paidSignature,
+        $unset: { reservationExpiresAt: "" },
+      },
+      { new: true }
+    );
+
+    if (!paid) {
+      // Lost the race: the payment window expired and the sweep already
+      // cancelled + restocked this order. In a real gateway this is where a
+      // refund would be triggered.
+      return res.status(409).json({
+        message: "This order's payment window expired and it was cancelled. Please order again.",
+      });
+    }
 
     // Respond first; email is best-effort and must not delay the response.
-    res.json({ success: true, order });
-    sendOrderConfirmationEmail(order.buyerEmail, order)
+    res.json({ success: true, order: paid });
+    sendOrderConfirmationEmail(paid.buyerEmail, paid)
       .catch((mailErr) => console.warn("Order confirmation email failed:", mailErr.message));
   } catch (err) {
     res.status(500).json({ message: err.message });

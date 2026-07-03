@@ -38,13 +38,11 @@ body {
 
 .sidebar-brand {
   padding: 26px 22px;
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: 20px;
   color: #fff;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   text-decoration: none;
-  display: block;
+  display: flex;
+  align-items: center;
 }
 
 .sidebar-subtitle {
@@ -63,31 +61,53 @@ body {
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 11px 22px;
+  gap: 12px;
+  padding: 10px 16px;
   color: #a7a094;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
   font-size: 14px;
   font-weight: 500;
   border: none;
   background: none;
-  width: 100%;
+  width: calc(100% - 24px);
+  margin: 4px 12px;
+  border-radius: var(--radius-sm);
   text-align: left;
 }
 
 .nav-item:hover {
   color: #fff;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.04);
 }
 
 .nav-item.active {
   color: #fff;
-  background: rgba(255,255,255,0.08);
-  border-right: 2px solid var(--accent);
+  background: rgba(224,98,54,0.12);
+  font-weight: 600;
 }
 
-.nav-icon { display: flex; }
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
+  transition: stroke-width 0.2s ease;
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.06);
+}
+
+.nav-item.active .nav-icon {
+  color: var(--accent);
+}
 
 .sidebar-footer {
   padding: 18px 22px;
@@ -126,20 +146,32 @@ body {
 .logout-btn {
   width: 100%;
   margin-top: 12px;
-  padding: 7px;
+  padding: 8px 12px;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.12);
   color: #d8d2c6;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
-  font: inherit;
-  transition: 0.15s;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .logout-btn:hover {
-  border-color: rgba(255,255,255,0.3);
-  color: #fff;
+  border-color: rgba(201,85,63,0.4);
+  color: #ff8e7b;
+  background: rgba(201,85,63,0.1);
+}
+
+.logout-icon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
 }
 
 /* MAIN CONTENT */
@@ -361,8 +393,26 @@ tr:hover td { background: var(--bg); }
 }
 
 .filter-tab.active, .filter-tab:hover {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.user-filter-tab {
+  padding: 7px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  transition: 0.15s;
+}
+
+.user-filter-tab.active, .user-filter-tab:hover {
+  background: var(--accent);
+  border-color: var(--accent);
   color: white;
 }
 
@@ -403,6 +453,468 @@ tr:hover td { background: var(--bg); }
   .admin-main { margin-left: 60px; }
   .charts-grid { grid-template-columns: 1fr; }
 }
+
+/* Redesigned Product Form */
+.product-form-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 32px;
+  align-items: start;
+  margin-top: 15px;
+}
+@media (max-width: 768px) {
+  .product-form-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+.form-group label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+.form-input, .form-textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Upload Area */
+.upload-dropzone {
+  border: 2px dashed var(--line-strong);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.upload-dropzone:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+.upload-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+.upload-dropzone:hover .upload-icon {
+  color: var(--accent);
+}
+.upload-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.upload-subtext {
+  font-size: 12px;
+  color: var(--muted);
+}
+.upload-file-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.file-name-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  text-align: left;
+  word-break: break-all;
+}
+.file-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Checkbox Cards */
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.option-checkbox-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+  user-select: none;
+}
+.option-checkbox-card:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+}
+.option-checkbox-card input[type="checkbox"] {
+  display: none;
+}
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 4px;
+  margin-top: 2px;
+  position: relative;
+  background: var(--surface);
+  flex-shrink: 0;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.option-checkbox-card input[type="checkbox"]:checked + .checkbox-custom {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.option-checkbox-card input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.option-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.option-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.option-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* Actions */
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin-top: 10px;
+}
+.form-btn-submit {
+  padding: 10px 24px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font: inherit;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.form-btn-submit:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+.form-btn-cancel {
+  padding: 10px 24px;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font: inherit;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.form-btn-cancel:hover {
+  background: var(--surface-2);
+  border-color: var(--ink);
+}
+
+/* Redesigned Table Elements */
+.table-toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  border: 1px solid var(--line);
+}
+.table-toggle-badge.inactive {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--line);
+}
+.table-toggle-badge.inactive:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.table-toggle-badge.active-bestseller {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-color: var(--accent-soft);
+}
+.table-toggle-badge.active-bestseller:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.table-toggle-badge.active-new {
+  background: var(--info-soft);
+  color: var(--info);
+  border-color: var(--info-soft);
+}
+.table-toggle-badge.active-new:hover {
+  background: var(--info);
+  color: white;
+  border-color: var(--info);
+}
+.table-toggle-badge.active-cover {
+  background: var(--ok-soft);
+  color: var(--ok);
+  border-color: var(--ok-soft);
+}
+.table-toggle-badge.active-cover:hover {
+  background: var(--ok);
+  color: white;
+  border-color: var(--ok);
+}
+
+.table-action-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.table-action-btn.approve {
+  color: var(--ok);
+  border-color: var(--ok-soft);
+  background: var(--ok-soft);
+}
+.table-action-btn.approve:hover {
+  color: white;
+  background: var(--ok);
+  border-color: var(--ok);
+}
+.table-action-btn.revoke {
+  color: var(--danger);
+  border-color: var(--danger-soft);
+  background: var(--danger-soft);
+}
+.table-action-btn.revoke:hover {
+  color: white;
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.table-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.table-btn-icon .btn-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.table-btn-icon.edit:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.table-btn-icon.delete:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* Custom Select, Badges and Dots for Order Management */
+.table-select {
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236e6350' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+}
+.table-select:focus {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+.table-select:hover {
+  border-color: var(--line-strong);
+}
+.order-id-badge {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+.payment-method-tag {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.payment-status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.payment-status-dot.paid { color: var(--ok); }
+.payment-status-dot.unpaid { color: var(--warn); }
+.payment-status-dot .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.payment-status-dot.paid .dot { background: var(--ok); }
+.payment-status-dot.unpaid .dot { background: var(--warn); }
+.table-btn-icon.suspend:hover {
+  border-color: var(--warn);
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+.table-btn-icon.activate:hover {
+  border-color: var(--ok);
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+/* Coupon Form Layout */
+.coupon-form-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto;
+  gap: 16px;
+  align-items: end;
+  margin-top: 15px;
+}
+@media (max-width: 768px) {
+  .coupon-form-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+.table-toggle-badge.active-gallery {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border-color: #f3e8ff;
+}
+.table-toggle-badge.active-gallery:hover {
+  background: #7e22ce;
+  color: white;
+  border-color: #7e22ce;
+}
+html[data-theme="dark"] .table-toggle-badge.active-gallery {
+  background: rgba(168, 85, 247, 0.15);
+  color: #d8b4fe;
+  border-color: rgba(168, 85, 247, 0.15);
+}
+html[data-theme="dark"] .table-toggle-badge.active-gallery:hover {
+  background: #a855f7;
+  color: #0d0c0b;
+  border-color: #a855f7;
+}
 </style>
 <script src="theme.js"></script>
 </head>
@@ -413,9 +925,8 @@ tr:hover td { background: var(--bg); }
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <a class="sidebar-brand" href="index.html">
+    <a class="brand sidebar-brand" href="index.html">
       CraftNext
-      <div class="sidebar-subtitle">Admin Panel</div>
     </a>
 
     <nav class="sidebar-nav">
@@ -449,7 +960,14 @@ tr:hover td { background: var(--bg); }
           <span>Administrator</span>
         </div>
       </div>
-      <button class="logout-btn" onclick="Auth.logout()">Sign Out</button>
+      <button class="logout-btn" onclick="Auth.logout()">
+        <svg class="logout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign Out</span>
+      </button>
     </div>
   </aside>
 
@@ -463,6 +981,13 @@ tr:hover td { background: var(--bg); }
 
     <!-- OVERVIEW TAB -->
     <div class="tab-panel active" id="tab-overview">
+
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+        <button class="action-btn btn-delete" onclick="clearAnalyticsData()" style="padding: 8px 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-right: 0;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+          Clear Analytics Data
+        </button>
+      </div>
 
       <div class="stats-grid" id="statsGrid">
         <div class="loader">Loading stats...</div>
@@ -496,10 +1021,10 @@ tr:hover td { background: var(--bg); }
     <div class="tab-panel" id="tab-users">
 
       <div class="filter-tabs">
-        <button class="filter-tab active" onclick="loadUsers('all', this)">All Users</button>
-        <button class="filter-tab" onclick="loadUsers('buyer', this)">Buyers</button>
-        <button class="filter-tab" onclick="loadUsers('seller', this)">Sellers</button>
-        <button class="filter-tab" onclick="loadUsers('admin', this)">Admins</button>
+        <button class="user-filter-tab active" onclick="loadUsers('all', this)">All Users</button>
+        <button class="user-filter-tab" onclick="loadUsers('buyer', this)">Buyers</button>
+        <button class="user-filter-tab" onclick="loadUsers('seller', this)">Sellers</button>
+        <button class="user-filter-tab" onclick="loadUsers('admin', this)">Admins</button>
       </div>
 
       <div class="data-table-wrapper">
@@ -528,54 +1053,107 @@ tr:hover td { background: var(--bg); }
 
     <!-- PRODUCTS TAB -->
     <div class="tab-panel" id="tab-products">
-      <div class="data-table-wrapper" style="margin-bottom:20px">
-        <h3 id="productFormTitle">Add Product</h3>
-        <form id="productForm" onsubmit="saveProduct(event)" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;align-items:end">
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Name</label>
-            <input class="table-search" style="width:100%" id="prodName" placeholder="Product name" required>
+      <div class="data-table-wrapper" style="margin-bottom:20px; overflow:visible;">
+        <h3 id="productFormTitle" style="border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:20px">Add Product</h3>
+        <form id="productForm" onsubmit="saveProduct(event)" class="product-form-layout">
+          <!-- Left side: Basic info -->
+          <div class="form-section">
+            <div class="form-group full-width">
+              <label for="prodName">Name</label>
+              <input class="form-input" id="prodName" placeholder="Product name" required>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prodCategory">Category</label>
+                <select class="form-input" id="prodCategory">
+                  <option value="spiritual">Spiritual</option>
+                  <option value="clock">Clock</option>
+                  <option value="lippan">Lippan</option>
+                  <option value="diya">Diya</option>
+                  <option value="zharokha">Zharokha</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="prodPrice">Price (₹)</label>
+                <input class="form-input" id="prodPrice" type="number" min="1" placeholder="999" required>
+              </div>
+              <div class="form-group">
+                <label for="prodStock">Stock</label>
+                <input class="form-input" id="prodStock" type="number" min="0" placeholder="10" value="10">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="prodDesc">Description</label>
+              <textarea class="form-textarea" id="prodDesc" placeholder="Brief description of the product..."></textarea>
+            </div>
           </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Category</label>
-            <select class="table-search" style="width:100%" id="prodCategory">
-              <option value="spiritual">Spiritual</option>
-              <option value="clock">Clock</option>
-              <option value="lippan">Lippan</option>
-              <option value="diya">Diya</option>
-              <option value="zharokha">Zharokha</option>
-              <option value="other">Other</option>
-            </select>
+
+          <!-- Right side: Images and options -->
+          <div class="form-section">
+            <div class="form-group full-width" id="imageUploadWrapper">
+              <label>Images</label>
+              <div class="upload-dropzone" onclick="document.getElementById('prodImage').click()">
+                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span class="upload-text">Click to Upload Images</span>
+                <span class="upload-subtext">First image will be the primary photo</span>
+                <div id="uploadFileList" class="upload-file-list"></div>
+              </div>
+              <input style="display:none" id="prodImage" type="file" accept="image/*" multiple onchange="updateUploadFileList(this)">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Product Display Options</label>
+              <div class="options-container">
+                <label class="option-checkbox-card">
+                  <input type="checkbox" id="prodFeatured">
+                  <div class="checkbox-custom"></div>
+                  <div class="option-details">
+                    <span class="option-title">Mark as Bestseller</span>
+                    <span class="option-desc">Show this product in the featured category</span>
+                  </div>
+                </label>
+                
+                <label class="option-checkbox-card">
+                  <input type="checkbox" id="prodNewArrival" checked>
+                  <div class="checkbox-custom"></div>
+                  <div class="option-details">
+                    <span class="option-title">Show in New Arrivals</span>
+                    <span class="option-desc">Display in the "New Comers" section</span>
+                  </div>
+                </label>
+                
+                <label class="option-checkbox-card">
+                  <input type="checkbox" id="prodCategoryImage">
+                  <div class="checkbox-custom"></div>
+                  <div class="option-details">
+                    <span class="option-title">Category Cover Image</span>
+                    <span class="option-desc">Use this as the cover image for the category</span>
+                  </div>
+                </label>
+                
+                <label class="option-checkbox-card">
+                  <input type="checkbox" id="prodInGallery">
+                  <div class="checkbox-custom"></div>
+                  <div class="option-details">
+                    <span class="option-title">Add to Image Gallery</span>
+                    <span class="option-desc">Show this in the homepage's animated shuffle gallery</span>
+                  </div>
+                </label>
+              </div>
+            </div>
           </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Price (₹)</label>
-            <input class="table-search" style="width:100%" id="prodPrice" type="number" min="1" placeholder="999" required>
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Stock</label>
-            <input class="table-search" style="width:100%" id="prodStock" type="number" min="0" placeholder="10" value="10">
-          </div>
-          <div style="grid-column:1 / -1">
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Description</label>
-            <input class="table-search" style="width:100%" id="prodDesc" placeholder="Brief description">
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Images (first one is the main photo)</label>
-            <input class="table-search" style="width:100%" id="prodImage" type="file" accept="image/*" multiple>
-          </div>
-          <div style="display:flex;gap:16px;grid-column:1 / -1;flex-wrap:wrap">
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
-              <input type="checkbox" id="prodFeatured"> Mark as Bestseller (Featured)
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
-              <input type="checkbox" id="prodNewArrival" checked> Show in New Comers
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)">
-              <input type="checkbox" id="prodCategoryImage"> Use as this category's homepage image
-            </label>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button type="submit" id="productSubmitBtn" class="filter-tab active" style="height:37px">Add Product</button>
-            <button type="button" id="productCancelBtn" class="action-btn" style="display:none" onclick="resetProductForm()">Cancel</button>
+
+          <!-- Bottom Actions -->
+          <div class="form-actions full-width">
+            <button type="submit" id="productSubmitBtn" class="form-btn-submit">Add Product</button>
+            <button type="button" id="productCancelBtn" class="form-btn-cancel" style="display:none" onclick="resetProductForm()">Cancel</button>
           </div>
         </form>
       </div>
@@ -615,13 +1193,14 @@ tr:hover td { background: var(--bg); }
               <th>Buyer</th>
               <th>Items</th>
               <th>Total</th>
+              <th>Payment</th>
               <th>Status</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="ordersTableBody">
-            <tr><td colspan="7" class="loader">Loading...</td></tr>
+            <tr><td colspan="8" class="loader">Loading...</td></tr>
           </tbody>
         </table>
         <div id="ordersPager" style="text-align:center;margin-top:16px"></div>
@@ -632,27 +1211,27 @@ tr:hover td { background: var(--bg); }
     <div class="tab-panel" id="tab-coupons">
       <div class="data-table-wrapper" style="margin-bottom:20px">
         <h3>Create Coupon</h3>
-        <form id="couponForm" onsubmit="createCoupon(event)" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Code</label>
-            <input class="table-search" style="width:100%" id="couponCode" placeholder="SAVE10" required>
+        <form id="couponForm" onsubmit="createCoupon(event)" class="coupon-form-layout">
+          <div class="form-group">
+            <label for="couponCode">Code</label>
+            <input class="form-input" id="couponCode" placeholder="SAVE10" required style="text-transform:uppercase">
           </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Type</label>
-            <select class="table-search" style="width:100%" id="couponType">
+          <div class="form-group">
+            <label for="couponType">Type</label>
+            <select class="table-select" id="couponType" style="width:100%;height:39px">
               <option value="percent">Percent %</option>
               <option value="flat">Flat ₹</option>
             </select>
           </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Value</label>
-            <input class="table-search" style="width:100%" id="couponValue" type="number" min="1" placeholder="10" required>
+          <div class="form-group">
+            <label for="couponValue">Value</label>
+            <input class="form-input" id="couponValue" type="number" min="1" placeholder="10" required>
           </div>
-          <div>
-            <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Min order (₹)</label>
-            <input class="table-search" style="width:100%" id="couponMinOrder" type="number" min="0" placeholder="0">
+          <div class="form-group">
+            <label for="couponMinOrder">Min order (₹)</label>
+            <input class="form-input" id="couponMinOrder" type="number" min="0" placeholder="0">
           </div>
-          <button type="submit" class="filter-tab active" style="height:37px">Create</button>
+          <button type="submit" class="form-btn-submit" style="height:39px; padding: 0 20px; font-size: 13px; min-width: 100px;">Create</button>
         </form>
       </div>
 
@@ -683,6 +1262,24 @@ tr:hover td { background: var(--bg); }
 <script src="api.js"></script>
 <script src="script.js"></script>
 <script>
+
+function updateUploadFileList(input) {
+  const list = document.getElementById("uploadFileList");
+  if (!list) return;
+  if (!input.files || input.files.length === 0) {
+    list.innerHTML = "";
+    return;
+  }
+  list.innerHTML = Array.from(input.files).map(file => `
+    <span class="file-name-badge">
+      <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+      </svg>
+      ${file.name} (${(file.size / 1024).toFixed(0)} KB)
+    </span>
+  `).join("");
+}
 
 /* ——— GUARD ——— */
 const adminUser = getUser();
@@ -718,6 +1315,7 @@ function showTab(name) {
 
 /* ——— LOAD STATS ——— */
 let statsData = null;
+let charts = {};
 
 async function loadStats() {
   try {
@@ -726,6 +1324,19 @@ async function loadStats() {
     renderCharts(statsData);
   } catch (e) {
     document.getElementById("statsGrid").innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;
+  }
+}
+
+async function clearAnalyticsData() {
+  if (!confirm("WARNING: Are you sure you want to clear all analytics data? This will permanently delete ALL orders and reset all sales, revenue, and order graphs/statistics to zero. This action cannot be undone.")) {
+    return;
+  }
+  try {
+    const res = await Admin.clearAnalytics();
+    alert(res.message || "Analytics data cleared successfully.");
+    loadStats();
+  } catch (e) {
+    alert(e.message || "Failed to clear analytics data.");
   }
 }
 
@@ -762,11 +1373,17 @@ function renderCharts(d) {
   const months = Object.keys(d.monthlyRevenue || {});
   const revenues = Object.values(d.monthlyRevenue || {});
 
+  // Destroy existing chart instances if they exist
+  if (charts.revenue) charts.revenue.destroy();
+  if (charts.category) charts.category.destroy();
+  if (charts.user) charts.user.destroy();
+  if (charts.order) charts.order.destroy();
+
   // Muted, restrained palette — matches the site's token colors instead of default SaaS rainbow.
   const PALETTE = ["#b6532b", "#3e6c8c", "#4b7a52", "#93702e", "#8f4322", "#7a7266"];
 
   // Revenue chart
-  new Chart(document.getElementById("revenueChart"), {
+  charts.revenue = new Chart(document.getElementById("revenueChart"), {
     type: "bar",
     data: {
       labels: months,
@@ -792,7 +1409,7 @@ function renderCharts(d) {
   // Category chart
   const cats = (d.categoryData || []).map(c => c._id);
   const catCounts = (d.categoryData || []).map(c => c.count);
-  new Chart(document.getElementById("categoryChart"), {
+  charts.category = new Chart(document.getElementById("categoryChart"), {
     type: "doughnut",
     data: {
       labels: cats,
@@ -807,7 +1424,7 @@ function renderCharts(d) {
   });
 
   // User chart
-  new Chart(document.getElementById("userChart"), {
+  charts.user = new Chart(document.getElementById("userChart"), {
     type: "pie",
     data: {
       labels: ["Buyers", "Sellers", "Admins"],
@@ -822,7 +1439,7 @@ function renderCharts(d) {
   });
 
   // Order status chart
-  new Chart(document.getElementById("orderChart"), {
+  charts.order = new Chart(document.getElementById("orderChart"), {
     type: "doughnut",
     data: {
       labels: ["Pending", "Delivered", "Others"],
@@ -857,7 +1474,7 @@ let userSearchDebounce;
 async function loadUsers(roleFilter, btn, page = 1) {
   currentRoleFilter = roleFilter;
   if (btn) {
-    document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".user-filter-tab").forEach(t => t.classList.remove("active"));
     btn.classList.add("active");
   }
 
@@ -884,16 +1501,37 @@ function renderUsersTable(users) {
   }
   tbody.innerHTML = users.map(u => `
     <tr>
-      <td><strong>${u.name}</strong>${u.shopName ? `<br><small style="color:#aaa">${u.shopName}</small>` : ""}</td>
-      <td>${u.email}</td>
-      <td><span class="role-badge role-${u.role}">${u.role}</span></td>
-      <td>${new Date(u.createdAt).toLocaleDateString("en-IN")}</td>
-      <td><span class="status-badge ${u.isActive ? "status-active" : "status-inactive"}">${u.isActive ? "Active" : "Suspended"}</span></td>
       <td>
-        ${u.isActive
-          ? `<button class="action-btn btn-suspend" onclick="toggleUser('${u._id}', false)">Suspend</button>`
-          : `<button class="action-btn btn-activate" onclick="toggleUser('${u._id}', true)">Activate</button>`}
-        <button class="action-btn btn-delete" onclick="deleteUser('${u._id}')">Delete</button>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span style="font-weight:600;color:var(--text)">${u.name}</span>
+          ${u.shopName ? `<span style="font-size:11px;color:var(--muted)">${u.shopName}</span>` : ""}
+        </div>
+      </td>
+      <td><span style="color:var(--text);font-weight:500">${u.email}</span></td>
+      <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+      <td><span style="color:var(--muted);font-size:12.5px">${new Date(u.createdAt).toLocaleDateString("en-IN")}</span></td>
+      <td><span class="status-badge ${u.isActive ? "status-confirmed" : "status-cancelled"}">${u.isActive ? "Active" : "Suspended"}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          ${u.isActive
+            ? `
+            <button class="table-btn-icon suspend" onclick="toggleUser('${u._id}', false)" title="Suspend User">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>Suspend</span>
+            </button>
+            `
+            : `
+            <button class="table-btn-icon activate" onclick="toggleUser('${u._id}', true)" title="Activate User">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+              <span>Activate</span>
+            </button>
+            `
+          }
+          <button class="table-btn-icon delete" onclick="deleteUser('${u._id}')" title="Delete User">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            <span>Delete</span>
+          </button>
+        </div>
       </td>
     </tr>
   `).join("");
@@ -942,34 +1580,60 @@ async function loadProducts(page = 1) {
     }
     products.forEach(p => { productsCache[p._id] = p; });
     renderPager("productsPager", p, pages, "loadProducts");
-    tbody.innerHTML = products.map(p => `
-      <tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:12px">
-            <img src="${imgUrl(p.img)}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;background:#f0f0f0" onerror="this.onerror=null;this.src='Images/placeholder.svg'">
-            <strong>${p.name}</strong>
-          </div>
-        </td>
-        <td>${p.sellerName || "—"}</td>
-        <td><span style="text-transform:capitalize">${p.category}</span></td>
-        <td>₹${p.price.toLocaleString("en-IN")}</td>
-        <td>${p.stock}</td>
-        <td><span class="status-badge ${p.isActive ? "status-active" : "status-inactive"}">${p.isActive ? "Active" : "Inactive"}</span></td>
-        <td>
-          <span class="status-badge ${p.isApproved === false ? "status-inactive" : "status-active"}">${p.isApproved === false ? "Pending" : "Approved"}</span><br>
-          <button class="action-btn ${p.isApproved === false ? "btn-activate" : "btn-suspend"}" onclick="toggleProductFlag('${p._id}', 'isApproved', ${p.isApproved === false})">${p.isApproved === false ? "Approve" : "Revoke"}</button>
-        </td>
-        <td>
-          <button class="action-btn ${p.bestSeller ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'bestSeller', ${!p.bestSeller})">${p.bestSeller ? "Unmark Bestseller" : "Mark Bestseller"}</button>
-          <button class="action-btn ${p.newArrival ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'newArrival', ${!p.newArrival})">${p.newArrival ? "Unmark New" : "Mark New"}</button>
-          <button class="action-btn ${p.isCategoryImage ? "btn-suspend" : "btn-activate"}" onclick="toggleProductFlag('${p._id}', 'isCategoryImage', ${!p.isCategoryImage})">${p.isCategoryImage ? "Unset Category Image" : "Set as Category Image"}</button>
-        </td>
-        <td>
-          <button class="action-btn btn-activate" onclick="openEditProduct('${p._id}')">Edit</button>
-          <button class="action-btn btn-suspend" onclick="deleteProductForever('${p._id}', '${p.name.replace(/'/g, "\\'")}')">Delete Forever</button>
-        </td>
-      </tr>
-    `).join("");
+    tbody.innerHTML = products.map(p => {
+      const isPending = p.isApproved === false;
+      return `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:12px">
+              <img src="${imgUrl(p.img)}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--surface-2);border:1px solid var(--line)" onerror="this.onerror=null;this.src='Images/placeholder.svg'">
+              <span style="font-weight:600;color:var(--text);max-width:180px;word-wrap:break-word;display:inline-block">${p.name}</span>
+            </div>
+          </td>
+          <td><span style="color:var(--text);font-weight:500">${p.sellerName || "—"}</span></td>
+          <td><span style="text-transform:capitalize;color:var(--muted)">${p.category}</span></td>
+          <td><strong style="color:var(--text)">₹${p.price.toLocaleString("en-IN")}</strong></td>
+          <td><span style="font-weight:500;color:var(--text)">${p.stock}</span></td>
+          <td><span class="status-badge ${p.isActive ? "status-confirmed" : "status-cancelled"}">${p.isActive ? "Active" : "Inactive"}</span></td>
+          <td>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+              <span class="status-badge ${isPending ? "status-pending" : "status-confirmed"}">${isPending ? "Pending" : "Approved"}</span>
+              <button class="table-action-btn ${isPending ? "approve" : "revoke"}" onclick="toggleProductFlag('${p._id}', 'isApproved', ${isPending})">
+                ${isPending ? "Approve" : "Revoke"}
+              </button>
+            </div>
+          </td>
+          <td>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;max-width:240px">
+              <div class="table-toggle-badge ${p.bestSeller ? "active-bestseller" : "inactive"}" onclick="toggleProductFlag('${p._id}', 'bestSeller', ${!p.bestSeller})">
+                <span>★ Bestseller</span>
+              </div>
+              <div class="table-toggle-badge ${p.newArrival ? "active-new" : "inactive"}" onclick="toggleProductFlag('${p._id}', 'newArrival', ${!p.newArrival})">
+                <span>✦ New</span>
+              </div>
+              <div class="table-toggle-badge ${p.isCategoryImage ? "active-cover" : "inactive"}" onclick="toggleProductFlag('${p._id}', 'isCategoryImage', ${!p.isCategoryImage})">
+                <span>🖼 Cover</span>
+              </div>
+              <div class="table-toggle-badge ${p.inGallery ? "active-gallery" : "inactive"}" onclick="toggleProductFlag('${p._id}', 'inGallery', ${!p.inGallery})">
+                <span>🖼 Gallery</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="table-btn-icon edit" onclick="openEditProduct('${p._id}')" title="Edit Product">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Edit</span>
+              </button>
+              <button class="table-btn-icon delete" onclick="deleteProductForever('${p._id}', '${p.name.replace(/'/g, "\\'")}')" title="Delete Product">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                <span>Delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
   } catch (e) {
     document.getElementById("productsTableBody").innerHTML = `<tr><td colspan="9" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
   } finally {
@@ -1009,8 +1673,14 @@ function openEditProduct(id) {
   document.getElementById("prodFeatured").checked = !!p.bestSeller;
   document.getElementById("prodNewArrival").checked = !!p.newArrival;
   document.getElementById("prodCategoryImage").checked = !!p.isCategoryImage;
+  document.getElementById("prodInGallery").checked = !!p.inGallery;
 
-  document.getElementById("prodImage").style.display = "none";
+  const uploadWrapper = document.getElementById("imageUploadWrapper");
+  if (uploadWrapper) {
+    uploadWrapper.style.display = "none";
+  } else {
+    document.getElementById("prodImage").style.display = "none";
+  }
   document.getElementById("productFormTitle").textContent = "Edit Product (image can't be changed here — delete and re-add to replace it)";
   document.getElementById("productSubmitBtn").textContent = "Save Changes";
   document.getElementById("productCancelBtn").style.display = "inline-block";
@@ -1020,7 +1690,14 @@ function openEditProduct(id) {
 function resetProductForm() {
   editingProductId = null;
   document.getElementById("productForm").reset();
-  document.getElementById("prodImage").style.display = "block";
+  const uploadWrapper = document.getElementById("imageUploadWrapper");
+  if (uploadWrapper) {
+    uploadWrapper.style.display = "block";
+    const list = document.getElementById("uploadFileList");
+    if (list) list.innerHTML = "";
+  } else {
+    document.getElementById("prodImage").style.display = "block";
+  }
   document.getElementById("productFormTitle").textContent = "Add Product";
   document.getElementById("productSubmitBtn").textContent = "Add Product";
   document.getElementById("productCancelBtn").style.display = "none";
@@ -1040,6 +1717,7 @@ async function saveProduct(e) {
         bestSeller: document.getElementById("prodFeatured").checked,
         newArrival: document.getElementById("prodNewArrival").checked,
         isCategoryImage: document.getElementById("prodCategoryImage").checked,
+        inGallery: document.getElementById("prodInGallery").checked,
       });
       resetProductForm();
       loadProducts();
@@ -1058,6 +1736,7 @@ async function saveProduct(e) {
   formData.append("bestSeller", document.getElementById("prodFeatured").checked);
   formData.append("newArrival", document.getElementById("prodNewArrival").checked);
   formData.append("isCategoryImage", document.getElementById("prodCategoryImage").checked);
+  formData.append("inGallery", document.getElementById("prodInGallery").checked);
   const images = document.getElementById("prodImage").files;
   for (const file of images) formData.append("images", file);
 
@@ -1079,42 +1758,73 @@ async function saveProduct(e) {
 
 /* ——— ORDERS ——— */
 async function loadOrders(page = 1) {
-  document.getElementById("ordersTableBody").innerHTML = `<tr><td colspan="7" class="loader">Loading...</td></tr>`;
+  document.getElementById("ordersTableBody").innerHTML = `<tr><td colspan="8" class="loader">Loading...</td></tr>`;
   try {
     const { items: orders, page: p, pages } = await Admin.orders({ page, limit: 20 });
     const tbody = document.getElementById("ordersTableBody");
     if (!orders.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>No orders yet</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><p>No orders yet</p></div></td></tr>`;
       document.getElementById("ordersPager").innerHTML = "";
       return;
     }
     renderPager("ordersPager", p, pages, "loadOrders");
     tbody.innerHTML = orders.map(o => `
       <tr>
-        <td><code style="font-size:11px">#${o._id.slice(-6).toUpperCase()}</code></td>
-        <td>${o.buyerName || "Guest"}<br><small style="color:#aaa">${o.buyerEmail||""}</small></td>
-        <td>${o.items?.length || 0} item(s)</td>
-        <td><strong>₹${o.totalAmount?.toLocaleString("en-IN")}</strong></td>
-        <td><span class="status-badge status-${o.status}">${o.status}</span></td>
-        <td>${new Date(o.createdAt).toLocaleDateString("en-IN")}</td>
+        <td><span class="order-id-badge">#${o._id.slice(-6).toUpperCase()}</span></td>
         <td>
-          <select onchange="updateOrderStatus('${o._id}', this.value)" style="padding:5px 8px;border-radius:6px;border:1px solid #ddd;font-size:12px;cursor:pointer">
-            ${["pending","confirmed","shipped","delivered","cancelled"].map(s =>
-              `<option value="${s}" ${o.status===s?"selected":""}>${s}</option>`
-            ).join("")}
-          </select>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-weight:600;color:var(--text)">${o.buyerName || "Guest"}</span>
+            <span style="font-size:11px;color:var(--muted)">${o.buyerEmail || ""}</span>
+          </div>
+        </td>
+        <td><span style="font-weight:500;color:var(--text)">${o.items?.length || 0} item(s)</span></td>
+        <td><strong style="color:var(--text)">₹${o.totalAmount?.toLocaleString("en-IN")}</strong></td>
+        <td>
+          <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start">
+            <span class="payment-method-tag">${o.paymentMethod || "COD"}</span>
+            <span class="payment-status-dot ${o.isPaid ? 'paid' : 'unpaid'}">
+              <span class="dot"></span>
+              <span>${o.isPaid ? 'Paid' : 'Unpaid'}</span>
+            </span>
+          </div>
+        </td>
+        <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+        <td><span style="color:var(--muted);font-size:12.5px">${new Date(o.createdAt).toLocaleDateString("en-IN")}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <select class="table-select" onchange="updateOrderStatus('${o._id}', this.value)">
+              ${["pending","confirmed","shipped","delivered","cancelled"].map(s =>
+                `<option value="${s}" ${o.status===s?"selected":""}>${s}</option>`
+              ).join("")}
+            </select>
+            <button class="table-btn-icon delete" onclick="deleteOrder('${o._id}')" title="Delete Order" style="padding: 5px 10px;">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              <span>Delete</span>
+            </button>
+          </div>
         </td>
       </tr>
     `).join("");
   } catch (e) {
-    document.getElementById("ordersTableBody").innerHTML = `<tr><td colspan="7" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
+    document.getElementById("ordersTableBody").innerHTML = `<tr><td colspan="8" style="color:var(--danger)">Error: ${e.message}</td></tr>`;
   }
 }
 
 async function updateOrderStatus(id, status) {
   try {
     await Orders.updateStatus(id, status);
+    loadOrders();
   } catch (e) { alert("Failed to update: " + e.message); }
+}
+
+async function deleteOrder(id) {
+  if (!confirm("Are you sure you want to delete this order? This cannot be undone.")) return;
+  try {
+    await Admin.deleteOrder(id);
+    loadOrders();
+  } catch (e) {
+    alert(e.message || "Failed to delete order.");
+  }
 }
 
 /* ——— COUPONS ——— */
@@ -1129,15 +1839,26 @@ async function loadCoupons() {
     }
     tbody.innerHTML = coupons.map(c => `
       <tr>
-        <td><strong>${c.code}</strong></td>
-        <td>${c.discountType === "percent" ? c.discountValue + "%" : "₹" + c.discountValue}</td>
-        <td>${c.minOrderAmount ? "₹" + c.minOrderAmount : "—"}</td>
-        <td>${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString("en-IN") : "Never"}</td>
-        <td><span class="status-badge ${c.isActive ? "status-active" : "status-inactive"}">${c.isActive ? "Active" : "Disabled"}</span></td>
+        <td><span class="order-id-badge" style="text-transform:uppercase;letter-spacing:0.08em;font-size:11.5px">${c.code}</span></td>
+        <td><strong style="color:var(--text)">${c.discountType === "percent" ? c.discountValue + "%" : "₹" + c.discountValue}</strong></td>
+        <td><span style="font-weight:500;color:var(--text)">${c.minOrderAmount ? "₹" + c.minOrderAmount : "—"}</span></td>
+        <td><span style="color:var(--muted);font-size:12.5px">${c.expiresAt ? new Date(c.expiresAt).toLocaleDateString("en-IN") : "Never"}</span></td>
+        <td><span class="status-badge ${c.isActive ? "status-confirmed" : "status-cancelled"}">${c.isActive ? "Active" : "Disabled"}</span></td>
         <td>
           ${c.isActive
-            ? `<button class="action-btn btn-suspend" onclick="toggleCoupon('${c._id}', false)">Disable</button>`
-            : `<button class="action-btn btn-activate" onclick="toggleCoupon('${c._id}', true)">Enable</button>`}
+            ? `
+            <button class="table-btn-icon suspend" onclick="toggleCoupon('${c._id}', false)" title="Disable Coupon">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>Disable</span>
+            </button>
+            `
+            : `
+            <button class="table-btn-icon activate" onclick="toggleCoupon('${c._id}', true)" title="Enable Coupon">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+              <span>Enable</span>
+            </button>
+            `
+          }
         </td>
       </tr>
     `).join("");

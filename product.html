@@ -1,5 +1,5 @@
 <!-- this is product.html -->
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -7,28 +7,61 @@
 <title>Product Detail – CraftNext</title>
 <link rel="stylesheet" href="style.css">
 
-<style>
-/* Layout, image, price, qty, and buy/cart button rules live in style.css
+<style>/* Layout, image, price, qty, and buy/cart button rules live in style.css
    (.product-page/.product-container/.price/.qty-box/.cart-btn/.buy-btn) —
    only the reviews section is page-specific. */
 
 .reviews-section{ padding:0 clamp(20px,8vw,8%) 60px; max-width:1240px; margin:auto; }
-.reviews-section h2{ font-size:22px; margin-bottom:6px; }
-.review-summary{ color:var(--muted); margin-bottom:18px; font-size:14px; }
-.review-form{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px; margin-bottom:22px; max-width:560px; }
-.review-form select, .review-form textarea{ width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-sm); margin-bottom:12px; font-size:14px; font:inherit; background:var(--surface); }
-.review-form select:focus, .review-form textarea:focus{ outline:none; border-color:var(--accent); box-shadow:var(--ring); }
-.review-form textarea{ resize:vertical; min-height:70px; }
-.review-form button{ background:var(--ink); color:#fff; border:none; padding:10px 20px; border-radius:var(--radius-sm); font:inherit; font-weight:600; cursor:pointer; transition:background .15s; }
-.review-form button:hover{ background:var(--accent-dark); }
-.review-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:12px; max-width:560px; }
+.reviews-section h2{ font-size:22px; margin-bottom:8px; font-family:var(--font-serif); }
+.review-summary{ color:var(--muted); margin-bottom:20px; font-size:14px; }
+.review-form{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg); padding:24px; margin-bottom:24px; max-width:560px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.review-form select, .review-form textarea{ width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:var(--radius); margin-bottom:14px; font-size:14px; font:inherit; background:var(--surface); transition: border-color .15s, box-shadow .15s; }
+.review-form select:focus, .review-form textarea:focus{ outline:none; border-color:var(--accent); box-shadow: 0 0 0 3px rgba(224,98,54,0.1); }
+.review-form textarea{ resize:vertical; min-height:80px; }
+.review-form button{ background:var(--ink); color:#fff; border:none; padding:12px 24px; border-radius:999px; font:inherit; font-weight:600; cursor:pointer; transition:background .2s, box-shadow .2s, transform .12s; }
+.review-form button:hover{ background:var(--accent-dark); box-shadow: 0 4px 14px rgba(224,98,54,0.2); }
+.review-form button:active{ transform: scale(0.97); }
+.review-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:14px; max-width:560px; transition: box-shadow .2s; }
+.review-card:hover{ box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
 .review-card .who{ font-weight:600; margin-right:8px; }
 .review-card .stars{ color:var(--warn); letter-spacing:1px; }
-.review-card .when{ color:var(--muted); font-size:12px; margin-top:2px; }
-.review-card .text{ margin-top:6px; color:var(--text); }
+.review-card .when{ color:var(--muted); font-size:12px; margin-top:3px; }
+.review-card .text{ margin-top:8px; color:var(--text); line-height:1.5; }
 
 .related-section{ padding:0 clamp(20px,8vw,8%) 20px; max-width:1240px; margin:auto; }
-.related-section h2{ font-size:22px; margin-bottom:18px; }
+.related-section h2{ font-size:22px; margin-bottom:18px; font-family:var(--font-serif); }
+
+/* Image Magnification Lens */
+.product-main-img-wrapper {
+    position: relative;
+    cursor: crosshair;
+}
+
+.magnify-lens {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.85);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.08);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+    will-change: transform, opacity;
+}
+
+.product-main-img-wrapper:hover .magnify-lens {
+    opacity: 1;
+    transform: scale(1);
+}
+
+@media (max-width: 760px) {
+    .magnify-lens { display: none; }
+    .product-main-img-wrapper { cursor: default; }
+}
 </style>
 
 <script src="theme.js"></script>
@@ -41,10 +74,12 @@
 <header class="navbar">
 <a class="brand" href="index.html">CraftNext</a>
 
-<div>
+<nav>
+<div class="nav-links">
 <a href="index.html" class="back-btn">← Back</a>
 <span id="navUser"></span>
 </div>
+</nav>
 
 </header>
 
@@ -297,6 +332,55 @@ async function loadProduct() {
   } else {
     thumbnailsDiv.style.display = "none";
   }
+
+  // Initialize magnification lens
+  initMagnifyLens();
+}
+
+/* ================= MAGNIFY LENS ================= */
+
+function initMagnifyLens() {
+  const wrapper = document.querySelector(".product-main-img-wrapper");
+  const img = document.getElementById("productImage");
+  if (!wrapper || !img) return;
+
+  // Remove any existing lens
+  const oldLens = wrapper.querySelector(".magnify-lens");
+  if (oldLens) oldLens.remove();
+
+  const lens = document.createElement("div");
+  lens.className = "magnify-lens";
+  wrapper.appendChild(lens);
+
+  const ZOOM = 2.5;
+  const LENS_SIZE = 180;
+
+  function moveLens(e) {
+    const rect = wrapper.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    // Clamp to wrapper bounds
+    x = Math.max(0, Math.min(x, rect.width));
+    y = Math.max(0, Math.min(y, rect.height));
+
+    // Position lens centered on cursor
+    lens.style.left = (x - LENS_SIZE / 2) + "px";
+    lens.style.top = (y - LENS_SIZE / 2) + "px";
+
+    // Set the zoomed background
+    const bgW = rect.width * ZOOM;
+    const bgH = rect.height * ZOOM;
+    const bgX = -(x * ZOOM - LENS_SIZE / 2);
+    const bgY = -(y * ZOOM - LENS_SIZE / 2);
+
+    lens.style.backgroundImage = `url('${img.src}')`;
+    lens.style.backgroundSize = `${bgW}px ${bgH}px`;
+    lens.style.backgroundPosition = `${bgX}px ${bgY}px`;
+  }
+
+  wrapper.addEventListener("mousemove", moveLens);
+  wrapper.addEventListener("mouseenter", moveLens);
 }
 
 function toggleAccordion(el) {

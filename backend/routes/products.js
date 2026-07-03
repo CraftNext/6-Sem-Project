@@ -60,7 +60,7 @@ const upload = multer({
 router.get("/", async (req, res) => {
   try {
 
-    const { category, search, seller } = req.query;
+    const { category, search, seller, inGallery } = req.query;
 
     // isApproved: { $ne: false } treats missing (pre-approval-feature) products
     // as approved, and hides only products explicitly awaiting/denied approval.
@@ -69,6 +69,8 @@ router.get("/", async (req, res) => {
     if (category) filter.category = category;
 
     if (seller) filter.seller = seller;
+
+    if (inGallery) filter.inGallery = inGallery === "true";
 
     if (search) {
       // Uses the text index on name/description/sellerName instead of a
@@ -201,7 +203,7 @@ router.post(
         return res.status(400).json({ message: errors.array()[0].msg });
       }
 
-      const { name, description, price, category, stock, bestSeller, newArrival, isCategoryImage } = req.body;
+      const { name, description, price, category, stock, bestSeller, newArrival, isCategoryImage, inGallery } = req.body;
 
       // First uploaded image is the main/cover photo; all of them go into the gallery.
       const imagePaths = (req.files || []).map((f) => `/uploads/${category}/${f.filename}`);
@@ -219,6 +221,7 @@ router.post(
         ...(bestSeller !== undefined && { bestSeller: bestSeller === "true" }),
         ...(newArrival !== undefined && { newArrival: newArrival === "true" }),
         ...(isCategoryImage !== undefined && { isCategoryImage: isCategoryImage === "true" }),
+        ...(inGallery !== undefined && { inGallery: inGallery === "true" }),
         // Admin-added products are self-approved; seller-added ones wait for review.
         isApproved: req.user.role === "admin",
       });

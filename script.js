@@ -74,7 +74,7 @@ function addToCart(product) {
     saveCart(cart);
     updateCartCount();
     showToast("Added to cart!", "success");
-    toggleCartDrawer(true);
+    renderCartDrawer();
 }
 
 function removeFromCart(id) {

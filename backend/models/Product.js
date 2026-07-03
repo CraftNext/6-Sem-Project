@@ -36,6 +36,7 @@ const productSchema = new mongoose.Schema(
     // Whether this product's photo represents its category on the homepage's
     // "Shop by Category" tile. Only one product per category can hold this.
     isCategoryImage: { type: Boolean, default: false },
+    inGallery: { type: Boolean, default: false },
     // Seller-created products need admin approval before going public;
     // admin-created products are self-approved. Default true so existing
     // products (created before this field existed) don't vanish from the
@@ -52,14 +53,13 @@ productSchema.index({ name: "text", description: "text", sellerName: "text" });
 // Setting isCategoryImage on one product demotes any other product already
 // holding it for that category — keeps exactly one thumbnail per category
 // regardless of which route (create or update) made the change.
-productSchema.pre("save", async function (next) {
+productSchema.pre("save", async function () {
   if (this.isModified("isCategoryImage") && this.isCategoryImage) {
     await this.constructor.updateMany(
       { category: this.category, _id: { $ne: this._id } },
       { isCategoryImage: false }
     );
   }
-  next();
 });
 
 module.exports = mongoose.model("Product", productSchema);

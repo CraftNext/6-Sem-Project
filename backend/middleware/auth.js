@@ -30,6 +30,15 @@ const protect = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select("-password");
+
+      // Token is valid but the account is gone or suspended — reject now
+      // instead of honoring a still-unexpired token for a disabled user.
+      if (!req.user) {
+        return res.status(401).json({ message: "Account no longer exists" });
+      }
+      if (req.user.isActive === false) {
+        return res.status(403).json({ message: "Account suspended. Contact support." });
+      }
       return next();
     } catch (error) {
       return res.status(401).json({ message: "Not authorized, token failed" });
@@ -55,7 +64,10 @@ const optionalProtect = async (req, res, next) => {
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select("-password");
+      const user = await User.findById(decoded.id).select("-password");
+      // Only attach a live, non-suspended account. A suspended or deleted
+      // user simply proceeds as a guest here (this route supports guests).
+      if (user && user.isActive !== false) req.user = user;
     } catch (error) {
       // invalid/expired token on an optional route — proceed as guest
     }

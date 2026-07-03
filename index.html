@@ -42,6 +42,7 @@
 <a href="cart.html">
   <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/></svg>
   Cart
+  <span id="cartCount" class="nav-cart-badge">0</span>
 </a>
 <a href="wishlist.html">
   <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.35-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 5c-2.5 4.65-9.5 9-9.5 9Z"/></svg>
@@ -59,7 +60,7 @@
 
 <div class="hero-content">
 
-<p class="hero-eyebrow">Handcrafted in Gujarat, India</p>
+<p class="hero-eyebrow">Handcrafted in India</p>
 
 <h1>Discover unique, <em>handmade</em> products</h1>
 <p>Support small creators and artisans worldwide — every piece is made by hand, not mass-produced.</p>
@@ -132,6 +133,14 @@ Cash on Delivery
 </div>
 
 </div>
+</section>
+
+
+<!-- DYNAMIC ARTISAN GALLERY -->
+<section class="gallery-section">
+  <p class="section-eyebrow">Artisan Showcase</p>
+  <h2>Curated Gallery</h2>
+  <div class="gallery-grid" id="galleryGrid"></div>
 </section>
 
 
@@ -380,6 +389,10 @@ function renderInto(container, list, emptyMsg) {
   list.forEach(p => {
     const card = document.createElement("div");
     card.className = "product-card";
+    card.dataset.tooltipName = p.name;
+    card.dataset.tooltipSeller = p.sellerName || (p.seller && (p.seller.shopName || p.seller.name)) || "Artisan";
+    card.dataset.tooltipCategory = (p.category || "").charAt(0).toUpperCase() + (p.category || "").slice(1);
+    card.dataset.tooltipPrice = "₹" + Number(p.price).toLocaleString("en-IN");
     card.innerHTML = productCardHTML(p);
     container.appendChild(card);
   });
@@ -435,7 +448,7 @@ function scrollCarousel(containerId, direction) {
   el.scrollBy({ left: direction * (el.clientWidth * 0.8), behavior: "smooth" });
 }
 
-loadProducts();
+loadProducts().then(() => initializeGallery());
 
 async function loadTopSeller() {
   try {
@@ -470,6 +483,100 @@ async function loadCategoryImages() {
 
 loadCategoryImages();
 
+/* ——— SHOWCASE SHUFFLE GALLERY ——— */
+async function initializeGallery() {
+  const container = document.getElementById("galleryGrid");
+  if (!container) return;
+
+  try {
+    const res = await fetch(API_BASE + "/products?inGallery=true");
+    let galleryProducts = await res.json();
+
+    // Fallback if no specific products are set in gallery
+    if (!galleryProducts.length) {
+      galleryProducts = ALL_PRODUCTS.slice(0, 8);
+    }
+
+    if (!galleryProducts.length) {
+      container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No items in the gallery yet.</p></div>`;
+      return;
+    }
+    // Pad gallery with extra products from ALL_PRODUCTS if too few
+    const SLOTS = 4;
+    if (galleryProducts.length < SLOTS) {
+      const ids = new Set(galleryProducts.map(p => p._id));
+      for (const p of ALL_PRODUCTS) {
+        if (!ids.has(p._id)) { galleryProducts.push(p); ids.add(p._id); }
+        if (galleryProducts.length >= SLOTS + 4) break; // enough for pool too
+      }
+    }
+
+    const displayCount = Math.min(SLOTS, galleryProducts.length);
+    const visibleProducts = galleryProducts.slice(0, displayCount);
+
+    // Build a shuffle pool: start with gallery overflow, then pad with ALL_PRODUCTS
+    const visibleIds = new Set(visibleProducts.map(p => p._id));
+    let hiddenPool = galleryProducts.slice(displayCount).filter(p => !visibleIds.has(p._id));
+
+    // Add products from ALL_PRODUCTS that aren't already visible
+    ALL_PRODUCTS.forEach(p => {
+      if (!visibleIds.has(p._id) && !hiddenPool.find(h => h._id === p._id)) {
+        hiddenPool.push(p);
+      }
+    });
+
+    container.innerHTML = visibleProducts.map((p, idx) => `
+      <div class="gallery-item" data-index="${idx}" onclick="location.href='product.html?id=${p._id}'">
+        <img src="${imgUrl(p.img)}" alt="${p.name}" id="galleryImg-${idx}">
+        <div class="gallery-item-overlay">
+          <h4 id="galleryTitle-${idx}">${p.name}</h4>
+          <p id="galleryCategory-${idx}">${p.category.toUpperCase()}</p>
+        </div>
+      </div>
+    `).join("");
+
+    const activeProducts = [...visibleProducts];
+
+    // Shuffle one random cell every 3 seconds as long as there's a pool
+    if (hiddenPool.length > 0) {
+      setInterval(() => {
+        const cellIndex = Math.floor(Math.random() * displayCount);
+        const poolIndex = Math.floor(Math.random() * hiddenPool.length);
+        const nextProduct = hiddenPool[poolIndex];
+
+        const imgEl = document.getElementById(`galleryImg-${cellIndex}`);
+        const titleEl = document.getElementById(`galleryTitle-${cellIndex}`);
+        const catEl = document.getElementById(`galleryCategory-${cellIndex}`);
+        if (!imgEl || !nextProduct) return;
+
+        const cardEl = imgEl.parentElement;
+
+        // Fade out
+        imgEl.classList.add("out");
+
+        setTimeout(() => {
+          // Swap: put current card's product back into pool
+          const oldProduct = activeProducts[cellIndex];
+          hiddenPool[poolIndex] = oldProduct;
+          activeProducts[cellIndex] = nextProduct;
+
+          imgEl.src = imgUrl(nextProduct.img);
+          imgEl.alt = nextProduct.name;
+          titleEl.textContent = nextProduct.name;
+          catEl.textContent = nextProduct.category.toUpperCase();
+          cardEl.setAttribute("onclick", `location.href='product.html?id=${nextProduct._id}'`);
+
+          // Fade back in
+          imgEl.classList.remove("out");
+        }, 400);
+      }, 3000);
+    }
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load showcase gallery.</p></div>`;
+  }
+}
+
+
 </script>
 
 
@@ -499,6 +606,69 @@ async function subscribeNewsletter(e) {
   return false;
 }
 
+</script>
+
+<!-- Cursor-following tooltip — at the very bottom, outside all containers -->
+<div id="global-cursor-tooltip"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const tooltip = document.getElementById('global-cursor-tooltip');
+  if (!tooltip) return;
+
+  let mouseX = 0;
+  let mouseY = 0;
+  let isHovering = false;
+  let currentCard = null;
+
+  // requestAnimationFrame loop for butter-smooth movement
+  const moveTooltip = () => {
+    if (isHovering) {
+      tooltip.style.transform = `translate(${mouseX + 15}px, ${mouseY + 15}px)`;
+      requestAnimationFrame(moveTooltip);
+    }
+  };
+
+  // mouseover BUBBLES (unlike mouseenter), so delegation works
+  document.addEventListener('mouseover', (e) => {
+    const card = e.target.closest('.product-card[data-tooltip-name]');
+    if (!card || card === currentCard) return;
+
+    currentCard = card;
+    isHovering = true;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+
+    const title = card.getAttribute('data-tooltip-name') || 'Product';
+    const price = card.getAttribute('data-tooltip-price') || '';
+
+    tooltip.innerHTML = `
+      <strong>${title}</strong>
+      <span>${price}</span>
+    `;
+
+    tooltip.classList.add('is-active');
+    requestAnimationFrame(moveTooltip);
+  });
+
+  // mouseout BUBBLES (unlike mouseleave)
+  document.addEventListener('mouseout', (e) => {
+    if (!currentCard) return;
+    const related = e.relatedTarget;
+    // Only hide if we truly left the card (not just moving between children)
+    if (related && currentCard.contains(related)) return;
+    if (!currentCard.contains(e.target)) return;
+
+    isHovering = false;
+    currentCard = null;
+    tooltip.classList.remove('is-active');
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+});
 </script>
 
 

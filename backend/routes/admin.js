@@ -213,6 +213,29 @@ router.get("/orders", async (req, res) => {
 });
 
 
+// @DELETE /api/admin/clear-analytics
+router.delete("/clear-analytics", async (req, res) => {
+  try {
+    await Order.deleteMany({});
+    res.json({ message: "Analytics data cleared (all orders deleted)" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// @DELETE /api/admin/orders/:id
+router.delete("/orders/:id", async (req, res) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    res.json({ message: "Order deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 // @GET /api/admin/products
 router.get("/products", async (req, res) => {
   try {
