@@ -1,59 +1,66 @@
 /* =============================================================
-   CraftNext — design system v3 "Atelier"
-   Premium craft-marketplace look: warm ivory paper, espresso ink,
-   terracotta accent, Fraunces display serif, image-forward cards,
-   quiet motion. Token names and class hooks are stable — every
-   page's local <style> block builds on the same variables, and
-   html[data-theme="dark"] remaps the palette for dark mode.
+   CraftNext — design system v4 "Glass"
+   Apple-OS look: cool neutral surfaces, SF-style type, iOS blue
+   accent, hairline borders, continuous-curve radii, and true
+   glassmorphism (backdrop blur + saturation) on floating chrome —
+   navbar, drawers, modals, panels. Token names and class hooks are
+   stable — every page's local <style> block builds on the same
+   variables, and html[data-theme="dark"] remaps for dark mode.
    ============================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* ================= DESIGN TOKENS ================= */
 :root {
-    --bg:           #f8f5ee;
-    --surface:      #fffdf8;
-    --surface-2:    #efe9db;
-    --ink:          #211a10;
-    --on-ink:       #fffdf8;   /* text/icons placed on --ink surfaces */
-    --text:         #372e21;
-    --muted:        #6e6350;
-    --line:         #e8e0cd;
-    --line-strong:  #d5c9b0;
+    --bg:           #f5f5f7;
+    --surface:      #ffffff;
+    --surface-2:    #f0f0f2;
+    --ink:          #1d1d1f;
+    --on-ink:       #f5f5f7;   /* text/icons placed on --ink surfaces */
+    --text:         #333336;
+    --muted:        #6e6e73;
+    --line:         rgba(0,0,0,.08);
+    --line-strong:  rgba(0,0,0,.16);
 
     --accent:       #b3491f;
     --accent-dark:  #8a3717;
     --accent-soft:  #f6e3d4;
     --accent-ink:   #7c3413;
 
-    --ok:           #47734d;
-    --ok-soft:      #e3ebde;
-    --warn:         #8f6c2a;
-    --warn-soft:    #f2e7cf;
-    --danger:       #a03c28;
-    --danger-soft:  #f4dfd8;
-    --info:         #3d6a8a;
-    --info-soft:    #e1eaf0;
+    --ok:           #248a3d;
+    --ok-soft:      #e6f6ea;
+    --warn:         #a15c00;
+    --warn-soft:    #fff3e3;
+    --danger:       #d70015;
+    --danger-soft:  #fdebec;
+    --info:         #2f6fbf;
+    --info-soft:    #e8f0fe;
 
     /* Always-dark anchor panels (footer, newsletter, chat header) —
        identical in both themes so light text on them is always safe. */
-    --panel-dark:       #1d1710;
-    --panel-dark-text:  #cfc6b6;
-    --panel-dark-muted: #9d9384;
+    --panel-dark:       #161617;
+    --panel-dark-text:  #d2d2d7;
+    --panel-dark-muted: #86868b;
 
-    --nav-bg:       rgba(248,245,238,.85);
-    --dot:          rgba(33,26,16,.055);
+    --nav-bg:       rgba(251,251,253,.72);
+    --dot:          rgba(0,0,0,.045);
 
-    --radius-sm:    10px;
-    --radius:       14px;
-    --radius-lg:    20px;
+    /* Glass layer — floating chrome (nav, drawers, modals, panels) */
+    --glass:        rgba(255,255,255,.55);
+    --glass-strong: rgba(255,255,255,.78);
+    --glass-border: rgba(0,0,0,.07);
+    --glass-blur:   saturate(180%) blur(20px);
 
-    --shadow-sm:    0 1px 2px rgba(33,26,16,.06);
-    --shadow:       0 2px 6px rgba(33,26,16,.05), 0 12px 28px rgba(33,26,16,.08);
-    --shadow-lg:    0 4px 12px rgba(33,26,16,.07), 0 26px 60px rgba(33,26,16,.15);
+    --radius-sm:    12px;
+    --radius:       16px;
+    --radius-lg:    24px;
 
-    --font-serif:   'Fraunces', Georgia, serif;
-    --font-sans:    'Inter', sans-serif;
+    --shadow-sm:    0 1px 2px rgba(0,0,0,.05);
+    --shadow:       0 2px 8px rgba(0,0,0,.04), 0 14px 34px rgba(0,0,0,.09);
+    --shadow-lg:    0 4px 14px rgba(0,0,0,.06), 0 30px 70px rgba(0,0,0,.16);
+
+    --font-serif:   -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    --font-sans:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 
     --maxw:         1240px;
     --ring:         0 0 0 3px rgba(179,73,31,.18);
@@ -61,44 +68,48 @@
 
 /* ================= DARK MODE OVERRIDES ================= */
 html[data-theme="dark"] {
-    --bg:           #141311;
-    --surface:      #1c1a17;
-    --surface-2:    #26231f;
-    --ink:          #f4eee0;
-    --on-ink:       #171511;
-    --text:         #ded6c7;
-    --muted:        #9a9080;
-    --line:         #333029;
-    --line-strong:  #474239;
+    --bg:           #0b0b0d;
+    --surface:      #1c1c1e;
+    --surface-2:    #2c2c2e;
+    --ink:          #f5f5f7;
+    --on-ink:       #131315;
+    --text:         #e8e8ed;
+    --muted:        #98989d;
+    --line:         rgba(255,255,255,.1);
+    --line-strong:  rgba(255,255,255,.2);
 
     --accent:       #e06236;
-    --accent-dark:  #b6532b;
-    --accent-soft:  #2f1b13;
+    --accent-dark:  #f0713f;
+    --accent-soft:  rgba(224,98,54,.16);
     --accent-ink:   #f0c3b0;
 
-    --ok:           #66a870;
-    --ok-soft:      #1a291d;
-    --warn:         #cc9d45;
-    --warn-soft:    #2d2516;
-    --danger:       #c9553f;
-    --danger-soft:  #2d1b17;
-    --info:         #5a97bf;
-    --info-soft:    #182630;
+    --ok:           #30d158;
+    --ok-soft:      rgba(48,209,88,.14);
+    --warn:         #ff9f0a;
+    --warn-soft:    rgba(255,159,10,.14);
+    --danger:       #ff453a;
+    --danger-soft:  rgba(255,69,58,.14);
+    --info:         #64a9ff;
+    --info-soft:    rgba(100,169,255,.14);
 
-    --panel-dark:   #100e0b;
+    --panel-dark:   #101012;
 
-    --nav-bg:       rgba(20,19,17,.85);
-    --dot:          rgba(244,238,224,.05);
+    --nav-bg:       rgba(22,22,24,.68);
+    --dot:          rgba(245,245,247,.05);
 
-    --shadow-sm:    0 1px 2px rgba(0,0,0,.3);
-    --shadow:       0 6px 20px rgba(0,0,0,.45);
-    --shadow-lg:    0 16px 40px rgba(0,0,0,.6);
-    --ring:         0 0 0 3px rgba(224,98,54,.24);
+    --glass:        rgba(28,28,30,.55);
+    --glass-strong: rgba(28,28,30,.78);
+    --glass-border: rgba(255,255,255,.09);
+
+    --shadow-sm:    0 1px 2px rgba(0,0,0,.35);
+    --shadow:       0 6px 20px rgba(0,0,0,.5);
+    --shadow-lg:    0 16px 44px rgba(0,0,0,.65);
+    --ring:         0 0 0 3px rgba(224,98,54,.3);
 }
 
 /* Component-specific dark fixes */
-html[data-theme="dark"] .assistant-panel { background: rgba(28,26,23,.96); }
-html[data-theme="dark"] .admin-layout .sidebar { background: #0d0c0b; }
+html[data-theme="dark"] .assistant-panel { background: var(--glass-strong); }
+html[data-theme="dark"] .admin-layout .sidebar { background: #0d0d0f; }
 
 /* Smooth surface transition when switching themes */
 body, header, nav, footer, .navbar, .admin-topbar, .sidebar, .static-page,
@@ -151,11 +162,28 @@ html[data-theme="dark"]  .theme-toggle .moon-icon { transform: translateY(-20px)
 body {
     font-family: var(--font-sans);
     color: var(--text);
-    background: var(--bg);
+    /* Ambient color wash behind everything — gives the glass surfaces
+       something to visibly refract. Fixed so it stays put on scroll. */
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(600px 420px at 12% 8%,  rgba(179,73,31,.13),  transparent 60%),
+        radial-gradient(520px 380px at 88% 14%, rgba(233,164,80,.16), transparent 60%),
+        radial-gradient(640px 480px at 78% 82%, rgba(179,73,31,.09),  transparent 65%),
+        radial-gradient(520px 420px at 8% 90%,  rgba(61,106,138,.11), transparent 60%);
+    background-attachment: fixed;
     line-height: 1.6;
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    animation: pageEnter .5s ease-out;
+}
+
+html[data-theme="dark"] body {
+    background-image:
+        radial-gradient(600px 420px at 12% 8%,  rgba(224,98,54,.14),   transparent 60%),
+        radial-gradient(520px 380px at 88% 14%, rgba(255,159,10,.07),  transparent 60%),
+        radial-gradient(640px 480px at 78% 82%, rgba(224,98,54,.09),   transparent 65%),
+        radial-gradient(520px 420px at 8% 90%,  rgba(100,169,255,.06), transparent 60%);
 }
 
 html { scroll-behavior: smooth; }
@@ -163,10 +191,10 @@ img { max-width: 100%; }
 
 h1, h2, h3, h4, .brand {
     font-family: var(--font-serif);
-    font-weight: 600;
-    line-height: 1.18;
+    font-weight: 700;
+    line-height: 1.15;
     color: var(--ink);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.022em;
 }
 
 a { color: inherit; }
@@ -182,6 +210,11 @@ svg { display: block; }
 
 button { touch-action: manipulation; }
 
+input, select, textarea {
+    color: var(--text);
+}
+
+
 /* ================= ICONS (inline SVG helper) ================= */
 .icon {
     width: 18px;
@@ -195,14 +228,19 @@ button { touch-action: manipulation; }
     justify-content: space-between;
     align-items: center;
     gap: 16px;
-    padding: 14px clamp(20px, 5vw, 64px);
+    padding: 10px 22px;
     background: var(--nav-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--line);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-sm);
     position: sticky;
-    top: 0;
+    top: 12px;
+    margin: 12px auto 0;
+    width: min(var(--maxw), calc(100% - 32px));
     z-index: 1000;
+    animation: fadeInDown .5s cubic-bezier(.16,1,.3,1);
 }
 
 .brand {
@@ -214,6 +252,16 @@ button { touch-action: manipulation; }
 }
 
 .brand::first-letter { color: var(--accent); }
+
+.navbar a:not(.brand) {
+    animation: fadeInDown .5s cubic-bezier(.16,1,.3,1) backwards;
+}
+.navbar a:not(.brand):nth-child(1) { animation-delay: .05s; }
+.navbar a:not(.brand):nth-child(2) { animation-delay: .1s; }
+.navbar a:not(.brand):nth-child(3) { animation-delay: .15s; }
+.navbar a:not(.brand):nth-child(4) { animation-delay: .2s; }
+.navbar a:not(.brand):nth-child(5) { animation-delay: .25s; }
+.navbar a:not(.brand):nth-child(6) { animation-delay: .3s; }
 
 .nav-links {
     display: flex;
@@ -255,6 +303,56 @@ button { touch-action: manipulation; }
     line-height: 1;
     padding: 0 4px;
     margin-left: 2px;
+}
+
+/* ================= MOBILE NAV TOGGLE ================= */
+.nav-toggle {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color .15s, color .15s, background-color .15s;
+}
+
+.nav-toggle:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background-color: var(--surface-2);
+}
+
+@media (max-width: 760px) {
+    .nav-toggle { display: inline-flex; }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        padding: 14px 16px;
+        background: var(--glass-strong);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+    }
+
+    .nav-links.open { display: flex; }
+
+    .nav-links .search-bar { max-width: none; order: -1; margin-bottom: 8px; }
+
+    .navbar a:not(.brand) { margin-left: 0; }
 }
 
 /* ================= SEARCH BAR ================= */
@@ -315,8 +413,10 @@ button { touch-action: manipulation; }
     top: 100%;
     left: 0;
     width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-lg);
     z-index: 1010;
@@ -375,7 +475,7 @@ button { touch-action: manipulation; }
     gap: 48px;
     padding: 72px clamp(20px, 6vw, 80px);
     overflow: hidden;
-    background: var(--bg);
+    background: transparent;
     background-image: radial-gradient(var(--dot) 1px, transparent 1px);
     background-size: 26px 26px;
 }
@@ -423,12 +523,14 @@ button { touch-action: manipulation; }
     padding: 6px 14px;
     border-radius: 999px;
     margin-bottom: 22px;
+    animation: fadeInLeft .6s cubic-bezier(.16,1,.3,1) .1s backwards;
 }
 
 .hero-content h1 {
     font-size: clamp(38px, 5.4vw, 62px);
     font-weight: 600;
     margin-bottom: 18px;
+    animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) .2s backwards;
 }
 
 .hero-content h1 em {
@@ -442,9 +544,10 @@ button { touch-action: manipulation; }
     color: var(--muted);
     margin-bottom: 30px;
     max-width: 46ch;
+    animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) .35s backwards;
 }
 
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) .45s backwards; }
 
 .hero-stats {
     display: flex;
@@ -456,6 +559,7 @@ button { touch-action: manipulation; }
     font-size: 13.5px;
     color: var(--muted);
     font-weight: 500;
+    animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) .55s backwards;
 }
 
 .hero-stats span { display: inline-flex; align-items: center; gap: 8px; }
@@ -477,13 +581,14 @@ button { touch-action: manipulation; }
     box-shadow: var(--shadow-lg);
     border: 5px solid var(--surface);
     transition: transform .45s cubic-bezier(.2,.8,.2,1);
+    animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) backwards;
 }
 
-.hero-photo-1 { width: 210px; height: 250px; top: 0; right: 0; z-index: 3; transform: rotate(2.5deg); }
-.hero-photo-2 { width: 165px; height: 165px; bottom: 6px; left: 0; z-index: 2; transform: rotate(-4deg); }
-.hero-photo-3 { width: 135px; height: 135px; top: 26px; left: 44px; z-index: 1; transform: rotate(6deg); }
+.hero-photo-1 { width: 210px; height: 250px; top: 0; right: 0; z-index: 3; transform: rotate(2.5deg); animation-delay: .3s; }
+.hero-photo-2 { width: 165px; height: 165px; bottom: 6px; left: 0; z-index: 2; transform: rotate(-4deg); animation-delay: .5s; animation-name: heroPhotoIn, heroFloat; animation-duration: .8s, 5s; animation-timing-function: cubic-bezier(.16,1,.3,1), ease-in-out; animation-fill-mode: backwards, none; animation-iteration-count: 1, infinite; animation-delay: .5s, 1.3s; }
+.hero-photo-3 { width: 135px; height: 135px; top: 26px; left: 44px; z-index: 1; transform: rotate(6deg); animation-delay: .7s; animation-name: heroPhotoIn, heroFloat; animation-duration: .8s, 6s; animation-timing-function: cubic-bezier(.16,1,.3,1), ease-in-out; animation-fill-mode: backwards, none; animation-iteration-count: 1, infinite; animation-delay: .7s, 1.5s; }
 
-.hero-visual:hover .hero-photo { transform: rotate(0deg) scale(1.02); }
+.hero-visual:hover .hero-photo { transform: rotate(0deg) scale(1.02); animation-name: none; }
 
 @media (max-width: 900px) {
     .hero-visual { display: none; }
@@ -498,8 +603,8 @@ button { touch-action: manipulation; }
     padding: 13px 28px;
     border: 1px solid transparent;
     border-radius: 999px;
-    background: var(--ink);
-    color: var(--on-ink);
+    background: var(--accent);
+    color: #fff;
     font: inherit;
     font-weight: 600;
     font-size: 14.5px;
@@ -566,13 +671,17 @@ section + section { border-top: 1px solid var(--line); }
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 18px 20px;
-    transition: border-color .2s, transform .2s, box-shadow .2s;
+    transition: border-color .25s, transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;
 }
 
 .benefit:hover {
     border-color: var(--line-strong);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+}
+
+.benefit:hover .icon {
+    animation: iconPulse .5s ease;
 }
 
 .benefit .icon {
@@ -617,7 +726,7 @@ section + section { border-top: 1px solid var(--line); }
     position: absolute;
     inset: auto 0 0 0;
     height: 55%;
-    background: linear-gradient(to top, rgba(23,17,9,.82), rgba(23,17,9,0));
+    background: linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,0));
     pointer-events: none;
 }
 
@@ -646,11 +755,11 @@ section + section { border-top: 1px solid var(--line); }
 
 .category-card:hover {
     border-color: var(--line-strong);
-    transform: translateY(-4px);
-    box-shadow: var(--shadow);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
 }
 
-.category-card:hover img { transform: scale(1.06); }
+.category-card:hover img { transform: scale(1.08); filter: saturate(1.05) brightness(1.03); }
 .category-card:hover h3::after { opacity: 1; transform: translateX(0); }
 
 /* ================= STOREFRONT PRODUCT GRID =================
@@ -671,13 +780,13 @@ section + section { border-top: 1px solid var(--line); }
     border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
-    transition: border-color .3s ease, box-shadow .3s ease, transform .3s ease;
+    transition: border-color .3s ease, transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease;
 }
 
 .product-grid .product-card:hover {
     border-color: var(--line-strong);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-6px);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
 }
 
 .card-image-wrapper {
@@ -688,15 +797,33 @@ section + section { border-top: 1px solid var(--line); }
     position: relative;
 }
 
+/* Subtle overlay that darkens the image on hover, matching the Artsy video */
+.card-image-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    transition: background-color 0.4s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.product-grid .product-card:hover .card-image-wrapper::after {
+    background: rgba(0, 0, 0, 0.04);
+}
+
 .product-grid .product-card img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 0;
-    transition: transform .5s cubic-bezier(.2,.8,.2,1);
+    /* Zoom + pan toward the cursor driven by JS (initCardZoomPan): it
+       sets transform-origin to the pointer and scales up. Short
+       transition makes the scale glide in and the pan follow smoothly. */
+    transition: transform .25s cubic-bezier(0.22, 0.61, 0.36, 1);
+    z-index: 1;
+    will-change: transform;
 }
-
-.product-grid .product-card:hover img { transform: scale(1.06); }
 
 /* Cursor-following tooltip */
 #global-cursor-tooltip {
@@ -708,11 +835,14 @@ section + section { border-top: 1px solid var(--line); }
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.15s ease, visibility 0.15s ease;
-    background-color: #ffffff;
-    color: #333333;
+    background-color: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
     padding: 12px 16px;
-    border-radius: 8px;
-    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
     font-family: var(--font-sans);
     font-size: 14px;
     display: flex;
@@ -810,6 +940,25 @@ html[data-theme="dark"] #global-cursor-tooltip strong { color: #f5f3f0; }
     color: var(--on-ink);
 }
 
+/* Artsy behaviour: the action stays hidden until the card is hovered,
+   then reveals below the image. Pointer devices only — on touch there's
+   no hover, so the button stays permanently visible. */
+@media (hover: hover) and (pointer: fine) {
+    .product-grid .product-card .add-btn {
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+            opacity .35s cubic-bezier(.16,1,.3,1),
+            transform .35s cubic-bezier(.16,1,.3,1),
+            background .18s, color .18s, border-color .18s;
+    }
+    .product-grid .product-card:hover .add-btn,
+    .product-grid .product-card:focus-within .add-btn {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .price {
     display: block;
     font-size: 17px;
@@ -892,8 +1041,8 @@ html[data-theme="dark"] #global-cursor-tooltip strong { color: #f5f3f0; }
     z-index: 5;
 }
 
-.wish:hover { border-color: var(--line-strong); transform: scale(1.08); }
-.wish.active { color: #fff; background: var(--danger); border-color: var(--danger); }
+.wish:hover { border-color: var(--line-strong); transform: scale(1.12); }
+.wish.active { color: #fff; background: var(--danger); border-color: var(--danger); animation: heartbeat 1s ease-in-out; }
 
 /* ================= BADGES ================= */
 .badge {
@@ -911,8 +1060,8 @@ html[data-theme="dark"] #global-cursor-tooltip strong { color: #f5f3f0; }
     z-index: 4;
 }
 
-.badge-new  { background: var(--ok); color: #fff; }
-.badge-best { background: var(--accent); color: #fff; }
+.badge-new  { background: var(--ok); color: #fff; animation: badgeBounce .5s cubic-bezier(.16,1,.3,1) .2s backwards; }
+.badge-best { background: var(--accent); color: #fff; animation: badgeBounce .5s cubic-bezier(.16,1,.3,1) .2s backwards; }
 
 /* ================= COLLECTION BANNER ================= */
 .collection {
@@ -1021,8 +1170,8 @@ footer {
 }
 
 .footer-grid h4 { color: #fff; margin-bottom: 14px; font-size: 14px; font-weight: 600; }
-.footer-grid a { display: block; color: var(--panel-dark-muted); text-decoration: none; margin-bottom: 9px; font-size: 14px; transition: color .15s; }
-.footer-grid a:hover { color: #fff; }
+.footer-grid a { display: block; color: var(--panel-dark-muted); text-decoration: none; margin-bottom: 9px; font-size: 14px; transition: color .2s, transform .2s, padding-left .2s; }
+.footer-grid a:hover { color: #fff; transform: translateX(4px); padding-left: 2px; }
 footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566; }
 
 /* ================= FLOATING CART ================= */
@@ -1030,8 +1179,11 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     position: fixed;
     bottom: 26px;
     right: 26px;
-    background: var(--ink);
-    color: var(--on-ink);
+    background: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    color: var(--ink);
     width: 54px;
     height: 54px;
     border-radius: 50%;
@@ -1041,9 +1193,10 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     box-shadow: var(--shadow-lg);
     transition: transform .18s, background .18s;
     z-index: 900;
+    animation: floatBob 3s ease-in-out infinite, scaleIn .4s cubic-bezier(.16,1,.3,1) .8s backwards;
 }
 
-.floating-cart:hover { transform: scale(1.07); background: var(--accent-dark); color: #fff; }
+.floating-cart:hover { transform: scale(1.12); background: var(--accent); color: #fff; animation: none; }
 
 #cartCount {
     position: absolute;
@@ -1095,10 +1248,10 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     max-width: calc(100vw - 40px);
     height: 450px;
     max-height: calc(100vh - 200px);
-    background: rgba(255,253,248,.96);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--line-strong);
+    background: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     display: flex;
@@ -1291,11 +1444,12 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     gap: clamp(36px, 6vw, 80px);
     max-width: var(--maxw);
     margin: auto;
+    animation: fadeIn .5s ease-out;
 }
 
-.product-left { flex: 1.2; position: sticky; top: 32px; }
+.product-left { flex: 1.2; position: sticky; top: 32px; animation: fadeInLeft .6s cubic-bezier(.16,1,.3,1) .1s backwards; }
 .product-left img { width: 100%; max-width: 700px; border-radius: var(--radius-lg); display: block; background: var(--surface-2); }
-.product-right { flex: 1; max-width: 460px; }
+.product-right { flex: 1; max-width: 460px; animation: fadeInRight .6s cubic-bezier(.16,1,.3,1) .2s backwards; }
 .product-right h1 { font-size: clamp(26px, 4vw, 34px); margin-bottom: 6px; }
 .product-right p { margin: 8px 0; }
 .product-right .price { font-size: 26px; color: var(--ink); font-weight: 700; }
@@ -1328,8 +1482,14 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     border: 2px solid var(--line);
     cursor: pointer;
     background: var(--surface-2);
-    transition: border-color .15s, transform .15s, box-shadow .15s;
+    transition: border-color .15s, transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s;
+    animation: scaleIn .4s cubic-bezier(.16,1,.3,1) backwards;
 }
+
+.product-thumbnail:nth-child(1) { animation-delay: .2s; }
+.product-thumbnail:nth-child(2) { animation-delay: .3s; }
+.product-thumbnail:nth-child(3) { animation-delay: .4s; }
+.product-thumbnail:nth-child(4) { animation-delay: .5s; }
 
 .product-thumbnail:hover, .product-thumbnail.active {
     border-color: var(--accent);
@@ -1486,7 +1646,7 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     gap: 8px;
 }
 
-.etsy-add-btn:active, .etsy-buy-btn:active { transform: scale(.985); }
+.etsy-add-btn:active, .etsy-buy-btn:active { transform: scale(.97); }
 
 .etsy-add-btn {
     background: transparent;
@@ -1637,7 +1797,9 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 .payment-modal {
     position: fixed;
     inset: 0;
-    background: rgba(23,17,9,.55);
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 1020;
     display: none;
     align-items: center;
@@ -1648,8 +1810,10 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 .payment-modal.show { display: flex; }
 
 .payment-modal-box {
-    background: var(--surface);
-    border: 1px solid var(--line);
+    background: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 32px;
     max-width: 440px;
@@ -1748,7 +1912,9 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 .cart-drawer-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(23,17,9,.45);
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     opacity: 0;
     visibility: hidden;
     transition: opacity .3s ease, visibility .3s ease;
@@ -1764,7 +1930,10 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     width: 390px;
     max-width: 100vw;
     height: 100vh;
-    background: var(--surface);
+    background: var(--glass-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-left: 1px solid var(--glass-border);
     box-shadow: -4px 0 30px rgba(0,0,0,.15);
     z-index: 1050;
     display: flex;
@@ -2028,9 +2197,9 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 
 /* ================= SKELETON LOADER ================= */
 .skeleton {
-    background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 50%, var(--surface-2) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
     border-radius: var(--radius-sm);
 }
 
@@ -2050,14 +2219,34 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 /* ================= SCROLL REVEAL ================= */
 .reveal {
     opacity: 0;
-    transform: translateY(16px);
-    transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1);
+    transform: translateY(28px);
+    transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
 }
 
 .reveal.reveal-in {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* Staggered children inside revealed sections */
+.reveal-child {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1);
+}
+
+.reveal-in .reveal-child { opacity: 1; transform: translateY(0); }
+
+.reveal-in .reveal-child:nth-child(1)  { transition-delay: .05s; }
+.reveal-in .reveal-child:nth-child(2)  { transition-delay: .1s; }
+.reveal-in .reveal-child:nth-child(3)  { transition-delay: .12s; }
+.reveal-in .reveal-child:nth-child(4)  { transition-delay: .16s; }
+.reveal-in .reveal-child:nth-child(5)  { transition-delay: .2s; }
+.reveal-in .reveal-child:nth-child(6)  { transition-delay: .24s; }
+.reveal-in .reveal-child:nth-child(7)  { transition-delay: .28s; }
+.reveal-in .reveal-child:nth-child(8)  { transition-delay: .32s; }
+.reveal-in .reveal-child:nth-child(9)  { transition-delay: .36s; }
+.reveal-in .reveal-child:nth-child(10) { transition-delay: .4s; }
 
 /* ================= SCROLLBAR ================= */
 ::-webkit-scrollbar { width: 10px; }
@@ -2069,22 +2258,139 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 
 /* ================= ANIMATIONS ================= */
 @keyframes shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position:  200% 0; }
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 @keyframes toastIn {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(14px) scale(.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes toastOut {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(14px); }
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   { opacity: 0; transform: translateY(14px) scale(.96); }
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* — Directional fade-ins — */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* — Scale & pop — */
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+@keyframes badgeBounce {
+    0%   { opacity: 0; transform: scale(0); }
+    60%  { transform: scale(1.15); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* — Hero photo entrance + float — */
+@keyframes heroPhotoIn {
+    from { opacity: 0; transform: translateY(30px) rotate(0deg) scale(.9); }
+    to   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+}
+@keyframes heroFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+
+/* — Heartbeat for wishlist — */
+@keyframes heartbeat {
+    0%   { transform: scale(1); }
+    15%  { transform: scale(1.25); }
+    30%  { transform: scale(1); }
+    45%  { transform: scale(1.15); }
+    60%  { transform: scale(1); }
+}
+
+/* — Icon pulse — */
+@keyframes iconPulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); color: var(--accent); }
+    100% { transform: scale(1); }
+}
+
+/* — Floating bob for FABs — */
+@keyframes floatBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+}
+
+/* — Page entrance — */
+@keyframes pageEnter {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* — Button ripple — */
+@keyframes btnRipple {
+    0%   { transform: scale(0); opacity: .35; }
+    100% { transform: scale(4); opacity: 0; }
+}
+
+/* — Auth card entrance — */
+@keyframes authCardIn {
+    from { opacity: 0; transform: translateY(20px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* — Success checkmark — */
+@keyframes successPop {
+    0%   { transform: scale(0) rotate(-45deg); opacity: 0; }
+    60%  { transform: scale(1.2) rotate(0deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* — Shake for errors — */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+}
+
+/* ================= BUTTON RIPPLE EFFECT ================= */
+.btn-ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ripple::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,.3);
+    border-radius: 50%;
+    transform: scale(0);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.btn-ripple.rippling::after {
+    animation: btnRipple .5s ease-out;
+}
 
 /* ================= REDUCED MOTION ================= */
 @media (prefers-reduced-motion: reduce) {
@@ -2094,7 +2400,14 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
         transition-duration: .01ms !important;
     }
     html { scroll-behavior: auto; }
-    .reveal { opacity: 1; transform: none; }
+    .reveal, .reveal-child { opacity: 1; transform: none; }
+    body { animation: none !important; }
+    .navbar { animation: none !important; }
+    .navbar a:not(.brand) { animation: none !important; }
+    .hero-eyebrow, .hero-content h1, .hero-content p,
+    .hero-actions, .hero-stats { animation: none !important; }
+    .hero-photo { animation: none !important; }
+    .floating-cart { animation: none !important; }
 }
 
 /* ================= SHOWCASE GALLERY ================= */
@@ -2147,9 +2460,9 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 24px 16px 16px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
-    color: white;
+    padding: 34px 16px 16px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0) 100%);
+    color: #fff;
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -2170,6 +2483,9 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* Global h4 rule sets color: var(--ink) — restate white for photos */
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(0,0,0,.5);
 }
 
 .gallery-item-overlay p {
@@ -2191,3 +2507,355 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
     .category-card img { height: 200px; }
     .carousel-track .product-card { flex-basis: 220px; }
 }
+
+/* ================= GLASS SURFACES =================
+   Content cards go translucent with backdrop blur so the ambient
+   color wash behind the page refracts through them. Lighter blur
+   than the chrome layer — many instances per page. */
+.benefit,
+.product-grid .product-card,
+.category-card,
+.seller-card {
+    background: var(--glass-strong);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-color: var(--glass-border);
+}
+
+/* Page-level card surfaces (defined in each page's local <style>,
+   which loads after this sheet — the `body` prefix outranks their
+   equal-specificity `background: var(--surface)` declarations). */
+body .auth-card,
+body .profile-sidebar,
+body .profile-section,
+body .order-card,
+body .checkout-box,
+body .success-box,
+body .cart-items-box,
+body .cart-summary-box,
+body .review-summary,
+body .review-form,
+body .review-card,
+body .sell-box,
+body .modal-box,
+body .static-page,
+body .stat-card,
+body .chart-card {
+    background: var(--glass-strong);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-color: var(--glass-border);
+}
+
+/* ================= MOTION LAYER v2 =================
+   Transform/opacity only (compositor-friendly). Everything here is
+   neutralized by the global prefers-reduced-motion block above. */
+
+/* — Hero entrance: content children cascade up on load — */
+.hero-content > * { animation: fadeInUp .7s cubic-bezier(.16,1,.3,1) backwards; }
+.hero-content > *:nth-child(1) { animation-delay: .05s; }
+.hero-content > *:nth-child(2) { animation-delay: .14s; }
+.hero-content > *:nth-child(3) { animation-delay: .23s; }
+.hero-content > *:nth-child(4) { animation-delay: .32s; }
+.hero-content > *:nth-child(5) { animation-delay: .41s; }
+
+.hero-visual { animation: fadeInUp .8s cubic-bezier(.16,1,.3,1) .3s backwards; }
+
+/* — Ambient blob drift behind hero — */
+@keyframes blobDrift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(-24px, 18px) scale(1.06); }
+}
+.hero::before { animation: blobDrift 14s ease-in-out infinite; }
+.hero::after  { animation: blobDrift 18s ease-in-out infinite reverse; }
+
+/* — Card hover lift (product / benefit / category already zoom imgs) — */
+.product-grid .product-card {
+    transition: border-color .3s ease, transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s ease;
+}
+.product-grid .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow);
+}
+
+/* — Card image fade-in as they load/enter — */
+.product-grid .product-card img,
+.gallery-item img,
+.category-card img {
+    animation: fadeIn .5s ease backwards;
+}
+
+/* — Primary button shine sweep — */
+.btn, .hero-content button, .collection button, .newsletter button {
+    position: relative;
+    overflow: hidden;
+}
+.btn::before, .hero-content button::before,
+.collection button::before, .newsletter button::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    left: -80%;
+    width: 50%;
+    background: linear-gradient(105deg, transparent, rgba(255,255,255,.35), transparent);
+    transform: skewX(-20deg);
+    transition: left .6s ease;
+    pointer-events: none;
+}
+.btn:hover::before, .hero-content button:hover::before,
+.collection button:hover::before, .newsletter button:hover::before {
+    left: 130%;
+}
+
+/* — FABs: gentle idle bob — */
+.floating-cart { animation: floatBob 3.4s ease-in-out infinite; }
+.floating-cart:hover { animation: none; }
+
+/* — Cart count bump (class re-triggered from script.js) — */
+@keyframes countBump {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.45); }
+    100% { transform: scale(1); }
+}
+#cartCount.bump, .nav-cart-badge.bump { animation: countBump .35s cubic-bezier(.16,1,.3,1); }
+
+/* — Modal pop-in (payment + page modals) — */
+@keyframes modalPop {
+    from { opacity: 0; transform: translateY(14px) scale(.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.payment-modal-box, body .modal-box, .success-box {
+    animation: modalPop .3s cubic-bezier(.16,1,.3,1);
+}
+
+/* — Cart drawer items cascade in — */
+.cart-drawer.open .cart-drawer-item,
+.cart-drawer .cart-drawer-item {
+    animation: fadeInUp .35s cubic-bezier(.16,1,.3,1) backwards;
+}
+.cart-drawer .cart-drawer-item:nth-child(1) { animation-delay: .05s; }
+.cart-drawer .cart-drawer-item:nth-child(2) { animation-delay: .1s; }
+.cart-drawer .cart-drawer-item:nth-child(3) { animation-delay: .15s; }
+.cart-drawer .cart-drawer-item:nth-child(4) { animation-delay: .2s; }
+.cart-drawer .cart-drawer-item:nth-child(5) { animation-delay: .25s; }
+.cart-drawer .cart-drawer-item:nth-child(n+6) { animation-delay: .3s; }
+
+/* — Nav links micro-lift — */
+.navbar a:not(.brand) { transition: background .2s ease, color .2s ease, transform .18s ease; }
+.navbar a:not(.brand):hover { transform: translateY(-1px); }
+
+/* — Search bar focus grow — */
+.search-bar { transition: border-color .15s, box-shadow .15s, transform .2s ease; }
+.search-bar:focus-within { transform: scale(1.02); }
+
+/* — Wishlist heart pop on hover — */
+.wish { transition: transform .18s cubic-bezier(.16,1,.3,1), background .18s, color .18s, border-color .18s; }
+.wish:hover { transform: scale(1.15); }
+
+/* — Benefit icons wiggle on card hover — */
+.benefit .icon { transition: transform .25s cubic-bezier(.16,1,.3,1); }
+.benefit:hover .icon { transform: scale(1.15) rotate(-6deg); }
+
+/* — Footer link slide (matches existing hover) — */
+.footer-grid a { transition: color .15s, transform .18s ease, padding-left .18s ease; }
+
+/* ================= MOTION LAYER v3 =================
+   Scroll chrome + smoother global feel. Transform/opacity only.
+   Neutralized by the global prefers-reduced-motion block. */
+
+/* — Scroll progress bar (fixed top, scaled by JS) — */
+.scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    z-index: 2000;
+    will-change: transform;
+    transition: transform .1s linear;
+    pointer-events: none;
+}
+
+/* — Navbar tightens + deepens shadow once scrolled — */
+.navbar {
+    transition:
+        background .3s ease,
+        box-shadow .35s ease,
+        padding .3s ease,
+        border-color .3s ease,
+        transform .3s ease;
+}
+.navbar.nav-scrolled {
+    padding: 7px 20px;
+    box-shadow: var(--shadow);
+    background: var(--glass-strong);
+}
+
+/* — Cards get GPU hint + smoother settle when tilt resets — */
+.product-grid .product-card,
+.category-card,
+.benefit {
+    will-change: transform;
+    transition:
+        transform .4s cubic-bezier(.16,1,.3,1),
+        box-shadow .35s ease,
+        border-color .3s ease;
+}
+
+/* — Animated underline for text links — */
+.seller-link, .footer-brand a, .auth-toggle a, .continue-link {
+    position: relative;
+    text-decoration: none;
+}
+.seller-link::after, .continue-link::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -2px;
+    width: 100%; height: 1.5px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right center;
+    transition: transform .3s cubic-bezier(.16,1,.3,1);
+}
+.seller-link:hover::after, .continue-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+}
+
+/* — Inputs lift + glow on focus — */
+input, textarea, select {
+    transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s cubic-bezier(.16,1,.3,1),
+        background .18s ease;
+}
+.form-field input:focus, .form-group input:focus,
+.auth-body input:focus, .checkout-box input:focus,
+.review-form textarea:focus, .review-form select:focus {
+    transform: translateY(-1px);
+}
+
+/* — Status / badge gentle pulse to draw the eye — */
+@keyframes softPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+}
+.status-badge.status-pending { animation: softPulse 2.4s ease-in-out infinite; }
+
+/* — Add-to-cart buttons squish on active press — */
+.btn:active, .add-btn:active, .etsy-add-btn:active,
+.hero-content button:active, .checkout-btn:active,
+.place-btn:active, .auth-btn:active {
+    transform: scale(.96);
+}
+
+/* — Category tile arrow already slides; add image parallax lift — */
+.category-card { transition: transform .4s cubic-bezier(.16,1,.3,1), box-shadow .35s ease, border-color .3s ease; }
+
+/* — Smooth theme cross-fade on the toggle — */
+.theme-toggle svg { transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease; }
+
+/* — Qty +/- buttons bounce on press — */
+.qty-control button:active, .qty-box button:active { transform: scale(.88); }
+
+/* — Toast slides + settles with spring — */
+.toast { animation: toastIn .4s cubic-bezier(.34,1.56,.64,1), toastOut .3s ease 2.7s forwards; }
+
+/* — Page content soft-enters on load — */
+main, .cart-page, .checkout-page, .profile-page, .static-page, .auth-page {
+    animation: pageSoftIn .5s ease backwards;
+}
+@keyframes pageSoftIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ================= MOTION LAYER v4 =================
+   Load-in polish + tactile feedback. Transform/opacity only; uses
+   animations (not transitions) for fades so it never clashes with the
+   long zoom transition on the same <img>. Global reduced-motion block
+   neutralizes everything here. */
+
+/* — Images fade + settle once decoded — */
+.img-fade { opacity: 0; }
+.img-fade.img-loaded { animation: imgFadeIn .6s cubic-bezier(.16,1,.3,1) forwards; }
+@keyframes imgFadeIn {
+    from { opacity: 0; transform: scale(1.02); }
+    to   { opacity: 1; transform: scale(1); }
+}
+/* Product-card imgs own the zoom transform, so only fade opacity there. */
+.card-image-wrapper img.img-fade.img-loaded { animation: imgFadeOpacity .6s ease forwards; }
+@keyframes imgFadeOpacity { from { opacity: 0; } to { opacity: 1; } }
+
+/* — Wishlist heart burst on activate — */
+@keyframes heartBurst {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.4); }
+    55%  { transform: scale(.9); }
+    100% { transform: scale(1); }
+}
+.wish.burst { animation: heartBurst .45s cubic-bezier(.16,1,.3,1); }
+/* Radiating ring on burst */
+.wish.burst::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--danger);
+    opacity: .6;
+    animation: heartRing .5s ease-out forwards;
+    pointer-events: none;
+}
+@keyframes heartRing {
+    from { transform: scale(.6); opacity: .6; }
+    to   { transform: scale(1.8); opacity: 0; }
+}
+
+/* — Grid cards stagger up on first paint — */
+.product-grid .product-card {
+    animation: cardIn .5s cubic-bezier(.16,1,.3,1) backwards;
+}
+.product-grid .product-card:nth-child(1)  { animation-delay: .02s; }
+.product-grid .product-card:nth-child(2)  { animation-delay: .06s; }
+.product-grid .product-card:nth-child(3)  { animation-delay: .10s; }
+.product-grid .product-card:nth-child(4)  { animation-delay: .14s; }
+.product-grid .product-card:nth-child(5)  { animation-delay: .18s; }
+.product-grid .product-card:nth-child(6)  { animation-delay: .22s; }
+.product-grid .product-card:nth-child(7)  { animation-delay: .26s; }
+.product-grid .product-card:nth-child(n+8){ animation-delay: .30s; }
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* — Smoother global interactive base (links, icons, chips) — */
+a, .badge, .status-badge, .role-tab, .pay-option, .filter-tab, .tab-btn {
+    transition:
+        color .2s ease,
+        background-color .2s ease,
+        border-color .2s ease,
+        transform .2s cubic-bezier(.16,1,.3,1),
+        box-shadow .2s ease;
+}
+
+/* — Chips / options lift on hover — */
+.pay-option:hover, .role-tab:hover, .filter-tab:hover { transform: translateY(-1px); }
+
+/* — Cart drawer row removal glide — */
+@keyframes rowOut {
+    to { opacity: 0; transform: translateX(40px); height: 0; margin: 0; padding: 0; }
+}
+.cart-drawer-item.removing { animation: rowOut .3s ease forwards; overflow: hidden; }
+
+/* — Section headings rise slightly as they reveal — */
+.reveal .section-eyebrow, .reveal h2 {
+    transition: transform .6s cubic-bezier(.16,1,.3,1), opacity .6s ease;
+}
+
+/* — Smooth number/price emphasis when it changes — */
+@keyframes priceFlash {
+    0%   { color: var(--accent); transform: scale(1.12); }
+    100% { color: inherit; transform: scale(1); }
+}
+.price.flash { animation: priceFlash .5s ease; display: inline-block; }
+

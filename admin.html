@@ -177,7 +177,7 @@ body {
 /* MAIN CONTENT */
 .admin-main {
   margin-left: 232px;
-  flex: 1;
+  width: calc(100% - 232px);
   min-height: 100vh;
 }
 
@@ -261,6 +261,7 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 22px;
+  min-width: 0;
 }
 
 .chart-card h3 {
@@ -450,7 +451,7 @@ tr:hover td { background: var(--bg); }
   .sidebar { width: 60px; }
   .sidebar-brand { padding: 20px 10px; font-size: 14px; }
   .nav-item span { display: none; }
-  .admin-main { margin-left: 60px; }
+  .admin-main { margin-left: 60px; width: calc(100% - 60px); }
   .charts-grid { grid-template-columns: 1fr; }
 }
 

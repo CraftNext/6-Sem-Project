@@ -108,7 +108,15 @@ function updateCartCount() {
     const cart = getCart();
     const count = cart.reduce((total, item) => total + (Number(item.qty) || 0), 0);
     const el = document.getElementById("cartCount");
-    if (el) el.innerText = count;
+    if (el) {
+        const changed = el.innerText !== String(count);
+        el.innerText = count;
+        if (changed) {
+            el.classList.remove("bump");
+            void el.offsetWidth; // restart animation
+            el.classList.add("bump");
+        }
+    }
 }
 
 document.addEventListener("DOMContentLoaded", updateCartCount);
@@ -150,8 +158,14 @@ function toggleWishlist(id) {
 function updateHeartIcons(id) {
     id = String(id);
     const list = getWishlist();
+    const nowActive = list.includes(id);
     document.querySelectorAll(`.wish[data-id="${id}"]`).forEach(heart => {
-        heart.classList.toggle("active", list.includes(id));
+        heart.classList.toggle("active", nowActive);
+        if (nowActive) {
+            heart.classList.remove("burst");
+            void heart.offsetWidth;
+            heart.classList.add("burst");
+        }
     });
 }
 
@@ -643,16 +657,24 @@ document.addEventListener("DOMContentLoaded", initAutocompleteSearch);
 
 
 /* ================= SCROLL REVEAL =================
-   Sections fade up as they enter the viewport. Class is only ever
-   added here, so pages render normally if JS fails; skipped entirely
-   for users who prefer reduced motion. */
+   Sections fade up as they enter the viewport. Children inside
+   grids cascade in one-by-one with staggered delays. Class is
+   only ever added here, so pages render normally if JS fails;
+   skipped entirely for users who prefer reduced motion. */
 
 function initScrollReveal() {
     if (!("IntersectionObserver" in window)) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const targets = document.querySelectorAll("section");
+    const targets = document.querySelectorAll("section, .auth-page, .cart-page, .checkout-page, .dashboard, .profile-page, .static-page");
     if (!targets.length) return;
+
+    /* Child selectors that should get staggered cascade */
+    const childSelectors = [
+        ".benefit", ".category-card", ".gallery-item",
+        ".seller-card", ".footer-grid > div",
+        ".form-group", ".tab-panel", ".faq-item", ".contact-card"
+    ].join(", ");
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -661,12 +683,239 @@ function initScrollReveal() {
                 observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.08 });
+    }, { threshold: 0.06 });
 
     targets.forEach((el) => {
         el.classList.add("reveal");
         observer.observe(el);
+
+        /* Tag direct stagger-able children */
+        el.querySelectorAll(childSelectors).forEach((child) => {
+            child.classList.add("reveal-child");
+        });
     });
 }
 
 document.addEventListener("DOMContentLoaded", initScrollReveal);
+
+
+/* ================= BUTTON RIPPLE =================
+   Adds a Material-style ripple on click to major CTA buttons.
+   The ripple is purely CSS-driven; JS just adds/removes class. */
+
+function initBtnRipple() {
+    const selectors = ".btn, .auth-btn, .checkout-btn, .place-btn, .sell-btn, .save-btn, .hero-content button, .etsy-add-btn, .etsy-buy-btn";
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest(selectors);
+        if (!btn) return;
+        btn.classList.add("btn-ripple");
+        btn.classList.remove("rippling");
+        void btn.offsetWidth; /* force reflow */
+        btn.classList.add("rippling");
+        btn.addEventListener("animationend", () => {
+            btn.classList.remove("rippling");
+        }, { once: true });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initBtnRipple);
+
+
+/* ================= MOBILE NAV ================= */
+
+function initMobileNav() {
+    const nav = document.querySelector(".navbar");
+    const navLinks = nav && nav.querySelector(".nav-links");
+    if (!nav || !navLinks) return;
+
+    const toggle = document.createElement("button");
+    toggle.className = "nav-toggle";
+    toggle.setAttribute("aria-label", "Toggle menu");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.innerHTML = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`;
+    nav.insertBefore(toggle, navLinks);
+
+    toggle.addEventListener("click", () => {
+        const open = navLinks.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(open));
+    });
+
+    navLinks.addEventListener("click", (e) => {
+        if (e.target.closest("a")) {
+            navLinks.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!nav.contains(e.target)) {
+            navLinks.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initMobileNav);
+
+
+/* ================= SCROLL PROGRESS + NAV ELEVATION =================
+   A thin accent bar tracks scroll depth; the floating navbar gains a
+   stronger shadow + tighter padding once the page scrolls. All work is
+   inside a rAF so scroll stays smooth; skipped for reduced-motion. */
+
+function initScrollChrome() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const bar = document.createElement("div");
+    bar.className = "scroll-progress";
+    document.body.appendChild(bar);
+
+    const nav = document.querySelector(".navbar");
+    let ticking = false;
+
+    const update = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = height > 0 ? (scrollTop / height) * 100 : 0;
+        bar.style.transform = `scaleX(${pct / 100})`;
+        if (nav) nav.classList.toggle("nav-scrolled", scrollTop > 20);
+        ticking = false;
+    };
+
+    window.addEventListener("scroll", () => {
+        if (!ticking) {
+            window.requestAnimationFrame(update);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    update();
+}
+
+document.addEventListener("DOMContentLoaded", initScrollChrome);
+
+
+/* ================= MAGNETIC / TILT CARDS =================
+   Product & category cards tilt subtly toward the cursor for a soft
+   parallax feel. Pointer-driven, rAF-throttled, resets on leave.
+   Desktop pointers only; skipped for touch and reduced-motion. */
+
+function initTiltCards() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const cards = document.querySelectorAll(".category-card, .benefit");
+    const MAX = 5; // deg
+
+    cards.forEach((card) => {
+        let raf = null;
+        card.style.transformStyle = "preserve-3d";
+
+        card.addEventListener("pointermove", (e) => {
+            const rect = card.getBoundingClientRect();
+            const px = (e.clientX - rect.left) / rect.width - 0.5;
+            const py = (e.clientY - rect.top) / rect.height - 0.5;
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => {
+                card.style.transform =
+                    `perspective(800px) rotateX(${(-py * MAX).toFixed(2)}deg) rotateY(${(px * MAX).toFixed(2)}deg) translateY(-4px)`;
+            });
+        });
+
+        card.addEventListener("pointerleave", () => {
+            if (raf) cancelAnimationFrame(raf);
+            card.style.transform = "";
+        });
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initTiltCards);
+
+
+/* ================= IMAGE FADE-IN ON LOAD =================
+   Images fade + settle once decoded instead of popping in. Handles
+   both already-cached (complete) and lazy images. CSS does the fade;
+   JS only flips the `img-loaded` class. Skipped for reduced-motion. */
+
+function initImageFade() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const mark = (img) => img.classList.add("img-loaded");
+
+    const wire = (img) => {
+        if (img.dataset.fadeWired) return;
+        img.dataset.fadeWired = "1";
+        img.classList.add("img-fade");
+        if (img.complete && img.naturalWidth > 0) {
+            mark(img);
+        } else {
+            img.addEventListener("load", () => mark(img), { once: true });
+            img.addEventListener("error", () => mark(img), { once: true });
+        }
+    };
+
+    const scan = () =>
+        document.querySelectorAll(
+            ".card-image-wrapper img, .gallery-item img, .category-card img, .seller-card img"
+        ).forEach(wire);
+
+    scan();
+
+    /* Re-scan when grids render async (products, related, wishlist). */
+    const mo = new MutationObserver(() => scan());
+    mo.observe(document.body, { childList: true, subtree: true });
+}
+
+document.addEventListener("DOMContentLoaded", initImageFade);
+
+
+/* ================= CARD ZOOM-TO-CURSOR =================
+   Artsy-style: the product image scales up and pans toward the cursor.
+   transform-origin tracks the pointer, so hovering the top-right shows
+   the top-right zoomed, bottom-left shows bottom-left, etc. Clipped by
+   .card-image-wrapper (overflow hidden). Desktop fine-pointer only;
+   skipped for touch and reduced-motion. */
+
+function initCardZoomPan() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const ZOOM = 1.4;
+    let active = null; // current <img>
+
+    const reset = (img) => {
+        img.style.transform = "";
+        img.style.transformOrigin = "";
+    };
+
+    document.addEventListener("mousemove", (e) => {
+        const wrap = e.target.closest && e.target.closest(".card-image-wrapper");
+        if (!wrap) {
+            if (active) { reset(active); active = null; }
+            return;
+        }
+        const img = wrap.querySelector("img");
+        if (!img) return;
+        if (active && active !== img) reset(active);
+        active = img;
+
+        const rect = wrap.getBoundingClientRect();
+        const px = ((e.clientX - rect.left) / rect.width) * 100;
+        const py = ((e.clientY - rect.top) / rect.height) * 100;
+
+        /* mousemove already fires at frame rate — set directly. */
+        img.style.transformOrigin = `${px}% ${py}%`;
+        img.style.transform = `scale(${ZOOM})`;
+    }, { passive: true });
+
+    /* Safety reset when the pointer leaves a card entirely. */
+    document.addEventListener("mouseout", (e) => {
+        if (active && !(e.relatedTarget && e.relatedTarget.closest &&
+            e.relatedTarget.closest(".card-image-wrapper"))) {
+            reset(active);
+            active = null;
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", initCardZoomPan);

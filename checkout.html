@@ -10,7 +10,7 @@
 <style>
 .checkout-page { padding: 48px clamp(20px, 6vw, 60px); max-width: 1100px; margin: auto; }
 
-.checkout-page h1 { font-size: 24px; margin-bottom: 26px; }
+.checkout-page h1 { font-size: 24px; margin-bottom: 26px; animation: fadeInUp .5s cubic-bezier(.16,1,.3,1); }
 
 .checkout-grid {
   display: grid;
@@ -24,6 +24,15 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 28px;
+  animation: fadeInUp .5s cubic-bezier(.16,1,.3,1) backwards;
+}
+
+.checkout-box:nth-child(1) { animation-delay: .05s; }
+.checkout-box:nth-child(2) { animation-delay: .15s; }
+.checkout-box:nth-child(3) { animation-delay: .25s; }
+
+.checkout-grid > :last-child {
+  animation: fadeInRight .5s cubic-bezier(.16,1,.3,1) .1s backwards;
 }
 
 .checkout-box h2 { font-size: 17px; margin-bottom: 20px; }
@@ -45,9 +54,15 @@
   border-radius: var(--radius-sm);
   font-size: 14px;
   font: inherit;
+  color: var(--text);
   outline: none;
   background: var(--surface);
   transition: border-color 0.15s;
+}
+
+.form-field input::placeholder, .form-field select::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
 }
 
 .form-field input:focus { border-color: var(--accent); box-shadow: var(--ring); }
@@ -107,8 +122,13 @@
   text-align: center;
   font-size: 13px;
   cursor: pointer;
-  transition: 0.15s;
+  transition: border-color .2s, background .2s, color .2s, transform .2s;
   background: var(--surface);
+}
+
+.pay-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-strong);
 }
 
 .pay-option.selected {
@@ -116,13 +136,14 @@
   background: var(--accent-soft);
   color: var(--accent-ink);
   font-weight: 600;
+  transform: scale(1.03);
 }
 
 /* PLACE ORDER BUTTON */
 .place-btn {
   width: 100%;
   padding: 14px;
-  background: var(--ink);
+  background: var(--accent);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -130,11 +151,14 @@
   font-weight: 600;
   font: inherit;
   cursor: pointer;
-  transition: background 0.18s;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   margin-top: 6px;
+  position: relative;
+  overflow: hidden;
 }
 
-.place-btn:hover { background: var(--accent-dark); }
+.place-btn:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(179,73,31,.25); }
+.place-btn:active { transform: scale(.98); }
 
 .place-btn:disabled {
   background: var(--line-strong);
@@ -175,7 +199,9 @@
 .success-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(27,24,16,0.45);
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 999;
   display: none;
   align-items: center;
@@ -216,7 +242,7 @@
 
 .success-btn {
   padding: 12px 28px;
-  background: var(--ink);
+  background: var(--accent);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -645,7 +671,7 @@ function launchRazorpayPayment(order) {
       contact: order.shipping.phone
     },
     theme: {
-      color: "#82786a"
+      color: "#b3491f"
     },
     modal: {
       ondismiss: function () {

@@ -3,6 +3,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sell Your Art - CraftNext</title>
 <link rel="stylesheet" href="style.css">
 
@@ -45,7 +46,14 @@ border-radius:var(--radius-sm);
 border:1px solid var(--line);
 font:inherit;
 font-size:14px;
+color:var(--text);
 background:var(--surface);
+}
+
+.sell-box input::placeholder,
+.sell-box textarea::placeholder {
+color:var(--muted);
+opacity:0.8;
 }
 
 .sell-box input:focus,
@@ -68,7 +76,7 @@ height:100px;
 .sell-btn{
 width:100%;
 padding:13px;
-background:var(--ink);
+background:var(--accent);
 border:none;
 color:white;
 font:inherit;
