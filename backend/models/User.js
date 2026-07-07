@@ -55,6 +55,11 @@ const userSchema = new mongoose.Schema(
 
     isActive: { type: Boolean, default: true },
     wishlist: [{ type: mongoose.Schema.Types.Mixed }], // numeric IDs (static) or ObjectId strings (DB)
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    broadcasts: [{
+      message: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now }
+    }],
   },
   { timestamps: true }
 );

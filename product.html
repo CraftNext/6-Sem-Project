@@ -5,8 +5,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="View handmade product details, photos, reviews and related pieces on CraftNext.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="Product Detail – CraftNext">
+<meta property="og:description" content="View handmade product details, photos, reviews and related pieces on CraftNext.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Product Detail – CraftNext</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 <style>/* Layout, image, price, qty, and buy/cart button rules live in style.css
    (.product-page/.product-container/.price/.qty-box/.cart-btn/.buy-btn) —
@@ -63,9 +73,17 @@
     .magnify-lens { display: none; }
     .product-main-img-wrapper { cursor: default; }
 }
+.social-action-btn:hover {
+    background: var(--surface-2) !important;
+    border-color: var(--ink) !important;
+    color: var(--ink) !important;
+}
+.social-action-btn:active {
+    transform: scale(0.97);
+}
 </style>
 
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 <body>
@@ -143,6 +161,16 @@
     
     <button id="addCartBtn" class="etsy-add-btn">Add to Cart</button>
     <button id="buyBtn" class="etsy-buy-btn">Buy It Now</button>
+    
+    <div class="product-social-row" style="display: flex; gap: 12px; margin-top: 12px;">
+      <button id="likeBtn" class="social-action-btn" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--text); font-weight: 600; cursor: pointer; transition: all 0.2s;">
+        <span id="likeHeart" style="font-size: 16px; color: var(--muted); transition: color 0.2s;">♥</span>
+        <span id="likeCount">0</span> Likes
+      </button>
+      <button id="shareBtn" class="social-action-btn" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--text); font-weight: 600; cursor: pointer; transition: all 0.2s;">
+        <span>🔗</span> Share
+      </button>
+    </div>
   </div>
 
   <!-- ACCORDION DETAILS -->
@@ -227,8 +255,8 @@
 </section>
 
 
-<script src="api.js"></script>
-<script src="script.js"></script>
+<script src="api.js?v=5"></script>
+<script src="script.js?v=5"></script>
 
 
 <script>
@@ -237,9 +265,7 @@
 
 const navUser = document.getElementById("navUser");
 
-const user = localStorage.getItem("cn_user")
-? JSON.parse(localStorage.getItem("cn_user"))
-: null;
+const user = getUser(); // guarded parse from api.js
 
 if(user){
 
@@ -282,6 +308,8 @@ async function loadProduct() {
     document.body.innerHTML = "<h2 style='padding:40px'>Product not found</h2>";
     return;
   }
+
+  recordRecentlyViewed(product._id);
 
   const sellerName =
     product.sellerName ||
@@ -336,6 +364,59 @@ async function loadProduct() {
 
   // Initialize magnification lens
   initMagnifyLens();
+
+  // Social / Messaging setup
+  const likeCountEl = document.getElementById("likeCount");
+  const likeHeartEl = document.getElementById("likeHeart");
+  const likeBtn = document.getElementById("likeBtn");
+  const shareBtn = document.getElementById("shareBtn");
+
+  const likesList = product.likes || [];
+  likeCountEl.innerText = likesList.length;
+
+  if (user && likesList.includes(user._id)) {
+    likeHeartEl.style.color = "var(--danger)";
+  } else {
+    likeHeartEl.style.color = "var(--muted)";
+  }
+
+  likeBtn.onclick = async function() {
+    if (!user) {
+      showToast("Please login to like this artwork", "error");
+      setTimeout(() => { location.href = "login.html"; }, 1000);
+      return;
+    }
+    try {
+      const res = await Products.like(product._id);
+      likeCountEl.innerText = res.likesCount;
+      if (res.liked) {
+        likeHeartEl.style.color = "var(--danger)";
+        showToast("Added to liked artworks!", "success");
+      } else {
+        likeHeartEl.style.color = "var(--muted)";
+        showToast("Removed from liked artworks", "info");
+      }
+    } catch (err) {
+      showToast(err.message || "Failed to toggle like", "error");
+    }
+  };
+
+  shareBtn.onclick = function() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast("Product link copied to clipboard!", "success");
+    }).catch(err => {
+      showToast("Failed to copy link", "error");
+    });
+  };
+
+  const creatorBtn = document.querySelector(".contact-seller-btn");
+  if (creatorBtn) {
+    creatorBtn.onclick = function() {
+      const sellerId = product.seller && product.seller._id ? product.seller._id : product.seller;
+      location.href = `seller.html?seller=${sellerId}&openChat=true`;
+    };
+  }
 }
 
 /* ================= MAGNIFY LENS ================= */

@@ -3,9 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Secure checkout for your handmade CraftNext order.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="Checkout – CraftNext">
+<meta property="og:description" content="Secure checkout for your handmade CraftNext order.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Checkout – CraftNext</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 <style>
 .checkout-page { padding: 48px clamp(20px, 6vw, 60px); max-width: 1100px; margin: auto; }
@@ -261,7 +271,7 @@
   .form-row { grid-template-columns: 1fr; }
 }
 </style>
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 <body>
@@ -313,7 +323,10 @@
     <h2>Order Placed!</h2>
     <p>Thank you for your purchase. Your order has been confirmed and will be shipped soon.</p>
     <p id="successOrderId" style="font-family:Inter,sans-serif;font-size:13px;color:#aaa;margin-bottom:24px"></p>
-    <button class="success-btn" onclick="window.location.href='index.html'">Continue Shopping</button>
+    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+      <button class="success-btn" onclick="window.location.href='profile.html'" style="margin: 0;">View My Orders</button>
+      <button class="success-btn" onclick="window.location.href='index.html'" style="margin: 0; background: transparent; border: 1.5px solid var(--accent); color: var(--accent);">Continue Shopping</button>
+    </div>
   </div>
 </div>
 
@@ -396,8 +409,8 @@
 
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="api.js"></script>
-<script src="script.js"></script>
+<script src="api.js?v=5"></script>
+<script src="script.js?v=5"></script>
 <script>
 /* Checkout supports both guest and logged-in orders — no login required. */
 

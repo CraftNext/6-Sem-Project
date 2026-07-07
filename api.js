@@ -69,7 +69,9 @@ async function apiRequest(endpoint, method = "GET", body = null, auth = false) {
   if (body) options.body = JSON.stringify(body);
 
   const res = await fetch(API_BASE + endpoint, options);
-  const data = await res.json();
+  // A dead backend / proxy can answer with HTML or an empty body —
+  // fall back to a clean error object instead of a JSON SyntaxError.
+  const data = await res.json().catch(() => ({ message: `Server error (${res.status})` }));
 
   if (!res.ok) {
     // A previously-valid session died (expired/invalid token) — clear it and
@@ -106,7 +108,7 @@ const Auth = {
       headers: { Authorization: `Bearer ${getToken()}` },
       body: formData,
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({ message: `Server error (${res.status})` }));
     if (!res.ok) throw new Error(data.message || "Upload failed");
     return data;
   },
@@ -114,6 +116,9 @@ const Auth = {
     clearAuth();
     window.location.href = "login.html";
   },
+  getSeller: (id) => apiRequest("/auth/seller/" + id),
+  followSeller: (id) => apiRequest("/auth/seller/" + id + "/follow", "POST", null, true),
+  broadcast: (message) => apiRequest("/auth/seller/broadcast", "POST", { message }, true),
 };
 
 /* ——— PRODUCTS ——— */
@@ -133,6 +138,15 @@ const Products = {
   topSeller: () => apiRequest("/products/top-seller"),
   categoryImages: () => apiRequest("/products/category-images"),
   mine: () => apiRequest("/products/mine", "GET", null, true),
+  like: (id) => apiRequest("/products/" + id + "/like", "POST", null, true),
+};
+
+/* ——— MESSAGES ——— */
+
+const Messages = {
+  getConversations: () => apiRequest("/messages/conversations", "GET", null, true),
+  getHistory: (userId) => apiRequest("/messages/" + userId, "GET", null, true),
+  send: (receiverId, content) => apiRequest("/messages", "POST", { receiverId, content }, true),
 };
 
 /* ——— ORDERS ——— */
@@ -205,10 +219,16 @@ function updateNavbar() {
     }
   });
 
-  // Show/hide sell link for buyers
+  // Show/hide sell link for buyers, or redirect to login with seller role pre-selected if not logged in
   const sellLinks = document.querySelectorAll("a[href='sell.html']");
-  if (user && user.role === "buyer") {
-    sellLinks.forEach(l => l.style.display = "none");
+  if (user) {
+    if (user.role === "buyer") {
+      sellLinks.forEach(l => l.style.display = "none");
+    }
+  } else {
+    sellLinks.forEach(l => {
+      l.href = "login.html?role=seller";
+    });
   }
 }
 

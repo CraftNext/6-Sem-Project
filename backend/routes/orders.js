@@ -238,6 +238,17 @@ router.post("/", optionalProtect, async (req, res) => {
     } else {
       await restock(decremented);
     }
+    // Two checkouts hitting the same product doc inside concurrent
+    // transactions abort one with a transient WriteConflict — that's
+    // contention, not a server fault. Tell the buyer to retry (409)
+    // instead of surfacing a 500.
+    const transient =
+      err.code === 112 ||
+      (err.errorLabels && err.errorLabels.includes("TransientTransactionError")) ||
+      /write conflict/i.test(err.message || "");
+    if (transient) {
+      return res.status(409).json({ message: "That item is in high demand — please try again." });
+    }
     res.status(500).json({ message: err.message });
   }
 });
@@ -280,6 +291,106 @@ router.get("/:id", protect, async (req, res) => {
     }
 
     res.json(order);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @GET /api/orders/:id/invoice — streams a PDF invoice (buyer/seller/admin)
+router.get("/:id/invoice", protect, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const uid = req.user._id.toString();
+    const isOwner = order.buyer && order.buyer.toString() === uid;
+    const isSeller = order.items.some((it) => it.seller && it.seller.toString() === uid);
+    if (!isOwner && !isSeller && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const PDFDocument = require("pdfkit");
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+
+    const shortId = order._id.toString().slice(-8).toUpperCase();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=CraftNext-Invoice-${shortId}.pdf`);
+    doc.pipe(res);
+
+    const TERRACOTTA = "#b3491f";
+    const INK = "#1d1d1f";
+    const MUTED = "#6e6e73";
+    const rupee = (n) => `Rs. ${Number(n || 0).toLocaleString("en-IN")}`;
+
+    // Header
+    doc.fontSize(24).fillColor(TERRACOTTA).font("Helvetica-Bold").text("CraftNext");
+    doc.fontSize(9).fillColor(MUTED).font("Helvetica").text("Handmade Marketplace", { continued: false });
+    doc.moveUp(2);
+    doc.fontSize(16).fillColor(INK).font("Helvetica-Bold").text("INVOICE", { align: "right" });
+    doc.fontSize(9).fillColor(MUTED).font("Helvetica")
+      .text(`#${shortId}`, { align: "right" })
+      .text(new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }), { align: "right" });
+
+    doc.moveDown(2);
+    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#e5e5e7").stroke();
+    doc.moveDown(1);
+
+    // Bill to
+    const s = order.shipping || {};
+    doc.fontSize(10).fillColor(MUTED).text("BILLED TO");
+    doc.fontSize(11).fillColor(INK).font("Helvetica-Bold").text(s.name || order.buyerName || "Customer");
+    doc.font("Helvetica").fontSize(10).fillColor(INK);
+    if (s.address) doc.text(`${s.address}, ${s.city || ""} ${s.pincode || ""}`);
+    if (s.phone) doc.text(`Phone: ${s.phone}`);
+    if (s.email || order.buyerEmail) doc.text(`Email: ${s.email || order.buyerEmail}`);
+
+    doc.moveDown(1.5);
+
+    // Items table
+    const tableTop = doc.y;
+    const col = { name: 50, qty: 330, price: 390, total: 470 };
+    doc.fontSize(9).fillColor(MUTED).font("Helvetica-Bold");
+    doc.text("ITEM", col.name, tableTop);
+    doc.text("QTY", col.qty, tableTop);
+    doc.text("PRICE", col.price, tableTop);
+    doc.text("TOTAL", col.total, tableTop);
+    doc.moveTo(50, tableTop + 14).lineTo(545, tableTop + 14).strokeColor("#e5e5e7").stroke();
+
+    let y = tableTop + 22;
+    doc.font("Helvetica").fontSize(10).fillColor(INK);
+    order.items.forEach((it) => {
+      doc.text(it.name || "Item", col.name, y, { width: 260 });
+      doc.text(String(it.qty), col.qty, y);
+      doc.text(rupee(it.price), col.price, y);
+      doc.text(rupee(it.price * it.qty), col.total, y);
+      y += 20;
+    });
+
+    doc.moveTo(50, y + 4).lineTo(545, y + 4).strokeColor("#e5e5e7").stroke();
+    y += 14;
+
+    // Totals
+    const itemsSubtotal = order.items.reduce((sum, it) => sum + it.price * it.qty, 0);
+    const line = (label, value, bold = false) => {
+      doc.font(bold ? "Helvetica-Bold" : "Helvetica").fontSize(bold ? 12 : 10)
+        .fillColor(bold ? TERRACOTTA : INK);
+      doc.text(label, 350, y, { width: 110 });
+      doc.text(value, col.total, y);
+      y += bold ? 22 : 17;
+    };
+    line("Subtotal", rupee(itemsSubtotal));
+    if (order.discountAmount) line(`Coupon (${order.couponCode || "-"})`, `- ${rupee(order.discountAmount)}`);
+    line("Shipping", order.shippingFee ? rupee(order.shippingFee) : "FREE");
+    line("Grand Total", rupee(order.totalAmount), true);
+
+    // Footer
+    doc.font("Helvetica").fontSize(10).fillColor(INK);
+    doc.text(`Payment: ${order.paymentMethod}${order.isPaid ? " (Paid)" : order.paymentMethod === "COD" ? " (Pay on delivery)" : " (Pending)"}`, 50, y + 10);
+    doc.text(`Status: ${order.status}`, 50, y + 26);
+    doc.fontSize(8).fillColor(MUTED)
+      .text("Thank you for supporting handmade. — CraftNext", 50, 780, { align: "center", width: 495 });
+
+    doc.end();
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

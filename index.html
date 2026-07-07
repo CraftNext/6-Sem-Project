@@ -5,13 +5,23 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CraftNext - a handmade marketplace for Indian artisans. Shop Lippan art, mandalas, wall decor and more, direct from small creators.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="CraftNext – Handmade Marketplace">
+<meta property="og:description" content="CraftNext - a handmade marketplace for Indian artisans. Shop Lippan art, mandalas, wall decor and more, direct from small creators.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 
 <title>CraftNext – Handmade Marketplace</title>
 
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 <body>
@@ -148,27 +158,27 @@ Cash on Delivery
 <div class="category-grid">
 
 <div class="category-card" onclick="openCategory('spiritual')">
-<img src="Images/Spritual Image/Krishna1.jpeg" data-category="spiritual">
+<img src="Images/Spritual Image/Krishna1.jpeg" data-category="spiritual" alt="Hand-painted spiritual art" loading="lazy">
 <h3>Spiritual</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('clock')">
-<img src="Images/Clock/Clock.jpeg" data-category="clock">
+<img src="Images/Clock/Clock.jpeg" data-category="clock" alt="Handcrafted decorative wall clock" loading="lazy">
 <h3>Clock</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('lippan')">
-<img src="Images/Lippan Art/best1.jpeg" data-category="lippan">
+<img src="Images/Lippan Art/best1.jpeg" data-category="lippan" alt="Traditional Lippan mirror art" loading="lazy">
 <h3>Lippan Art</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('diya')">
-<img src="Images/Diya Art/1.jpeg" data-category="diya">
+<img src="Images/Diya Art/1.jpeg" data-category="diya" alt="Hand-decorated diya art" loading="lazy">
 <h3>Diya Art</h3>
 </div>
 
 <div class="category-card" onclick="openCategory('zharokha')">
-<img src="Images/Zharokha Art/1.jpeg" data-category="zharokha">
+<img src="Images/Zharokha Art/1.jpeg" data-category="zharokha" alt="Zharokha mirror-work frame" loading="lazy">
 <h3>Zharokha Art</h3>
 </div>
 
@@ -217,6 +227,14 @@ Cash on Delivery
 </section>
 
 
+<!-- RECENTLY VIEWED (populated only when the visitor has history) -->
+<section class="products" id="recentlyViewedSection" style="display:none">
+<p class="section-eyebrow">Pick up where you left off</p>
+<h2>Recently Viewed</h2>
+<div class="product-grid carousel-track" id="recentlyViewedGrid"></div>
+</section>
+
+
 <!-- SELLER SPOTLIGHT -->
 <section class="seller" id="sellerSpotlight" style="display:none">
 
@@ -225,7 +243,7 @@ Cash on Delivery
 
 <div class="seller-card">
 
-<img id="spotlightAvatar" src="Images/Clock/Ganesha Image.jpg">
+<img id="spotlightAvatar" src="Images/Clock/Ganesha Image.jpg" alt="Featured artisan" loading="lazy">
 
 <div>
 
@@ -318,8 +336,8 @@ window.location.href = "collection.html?cat=" + cat;
 </script>
 
 
-<script src="api.js"></script>
-<script src="script.js"></script>
+<script src="api.js?v=5"></script>
+<script src="script.js?v=5"></script>
 
 
 <!-- LOGIN / LOGOUT CONTROL -->
@@ -362,18 +380,7 @@ const featuredHeading = document.querySelector(".products h2");
 
 let ALL_PRODUCTS = [];
 
-function renderSkeletons(container, count) {
-  container.innerHTML = Array.from({length: count}, () => `
-    <div class="skeleton-card">
-      <div class="skeleton skeleton-img"></div>
-      <div class="skeleton-body">
-        <div class="skeleton skeleton-line"></div>
-        <div class="skeleton skeleton-line short"></div>
-        <div class="skeleton skeleton-line price"></div>
-      </div>
-    </div>
-  `).join("");
-}
+/* renderSkeletons moved to script.js so all pages share it */
 
 function renderInto(container, list, emptyMsg) {
   if (!list.length) {
@@ -410,6 +417,7 @@ async function loadProducts() {
 
     const newcomers = ALL_PRODUCTS.filter(p => p.newArrival);
     renderInto(newGrid, newcomers.length ? newcomers : ALL_PRODUCTS.slice(0, 4), "No new products yet.");
+    renderRecentlyViewed();
   } catch (err) {
     const msg = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load products. Make sure the backend is running.</p></div>`;
     featuredGrid.innerHTML = msg;
@@ -417,18 +425,36 @@ async function loadProducts() {
   }
 }
 
-function doSearch() {
+function renderRecentlyViewed() {
+  const ids = getRecentlyViewed();
+  if (!ids.length) return;
+  const byId = Object.fromEntries(ALL_PRODUCTS.map(p => [String(p._id), p]));
+  const items = ids.map(id => byId[id]).filter(Boolean);
+  if (!items.length) return;
+  renderInto(document.getElementById("recentlyViewedGrid"), items, "");
+  document.getElementById("recentlyViewedSection").style.display = "";
+}
+
+async function doSearch() {
   const q = document.getElementById("searchInput").value.trim().toLowerCase();
   if (!q) {
     featuredHeading.textContent = "Featured Products";
     renderInto(featuredGrid, featuredList(), "No products found.");
     return;
   }
-  const results = ALL_PRODUCTS.filter(p =>
+  let results = ALL_PRODUCTS.filter(p =>
     (p.name || "").toLowerCase().includes(q) ||
     (p.sellerName || "").toLowerCase().includes(q) ||
     (p.category || "").toLowerCase().includes(q)
   );
+  // Cache miss → ask the server (Mongo text index searches the full
+  // catalog, not just what this page has loaded).
+  if (!results.length) {
+    try {
+      results = await Products.getAll({ search: q });
+      cacheProducts(results);
+    } catch { /* offline/backend down — keep empty result state */ }
+  }
   featuredHeading.textContent = `Results for "${q}"`;
   renderInto(featuredGrid, results, "No products match your search.");
   featuredHeading.scrollIntoView({ behavior: "smooth", block: "start" });

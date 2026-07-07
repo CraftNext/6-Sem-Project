@@ -102,6 +102,23 @@ function changeCartQty(id, delta) {
 }
 
 
+/* ================= SKELETON LOADERS =================
+   Shared placeholder cards shown while a product grid loads. */
+
+function renderSkeletons(container, count) {
+    container.innerHTML = Array.from({ length: count }, () => `
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-img"></div>
+      <div class="skeleton-body">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line short"></div>
+        <div class="skeleton skeleton-line price"></div>
+      </div>
+    </div>
+  `).join("");
+}
+
+
 /* ================= CART COUNT ================= */
 
 function updateCartCount() {
@@ -340,7 +357,10 @@ function productCardHTML(p) {
         : sellerLabel;
 
     let badgeHTML = "";
-    if (p.bestSeller) {
+    const stockNum = Number(p.stock);
+    if (Number.isFinite(stockNum) && stockNum > 0 && stockNum <= 3) {
+        badgeHTML = `<span class="badge badge-low">Only ${stockNum} left</span>`;
+    } else if (p.bestSeller) {
         badgeHTML = `<span class="badge badge-best">Bestseller</span>`;
     } else if (p.newArrival) {
         badgeHTML = `<span class="badge badge-new">New</span>`;
@@ -366,12 +386,52 @@ function productCardHTML(p) {
         </div>`;
 }
 
+/* ================= FLY-TO-CART =================
+   Clones the product image and arcs it into the floating cart FAB,
+   then the badge bump (in updateCartCount) lands the beat. Skipped
+   for reduced-motion; harmless no-op when either end is missing. */
+
+function flyToCart(fromBtn) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const card = fromBtn.closest(".product-card");
+    const img = card && card.querySelector(".card-image-wrapper img");
+    const fab = document.querySelector(".floating-cart");
+    if (!img || !fab) return;
+
+    const a = img.getBoundingClientRect();
+    const b = fab.getBoundingClientRect();
+
+    const ghost = img.cloneNode();
+    ghost.className = "fly-ghost";
+    ghost.style.cssText =
+        `position:fixed;left:${a.left}px;top:${a.top}px;` +
+        `width:${a.width}px;height:${a.height}px;object-fit:cover;` +
+        `border-radius:12px;z-index:9999;pointer-events:none;margin:0;` +
+        `transition:transform .7s cubic-bezier(.3,.7,.4,1),opacity .7s ease;`;
+    document.body.appendChild(ghost);
+
+    const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
+    const dy = (b.top + b.height / 2) - (a.top + a.height / 2);
+
+    /* setTimeout instead of rAF: still fires when the tab is
+       backgrounded, and 20ms is enough for the initial style to land. */
+    setTimeout(() => {
+        ghost.style.transform = `translate(${dx}px, ${dy}px) scale(.08)`;
+        ghost.style.opacity = ".25";
+    }, 20);
+    ghost.addEventListener("transitionend", () => ghost.remove(), { once: true });
+    setTimeout(() => ghost.remove(), 900); // safety net
+}
+
 // Delegated Add-to-Cart for any .add-btn rendered from a cached product.
 document.addEventListener("click", function (e) {
     const btn = e.target.closest && e.target.closest(".add-btn");
     if (!btn) return;
     const p = _productCache[btn.dataset.pid];
-    if (p) addToCart(p);
+    if (p) {
+        flyToCart(btn);
+        addToCart(p);
+    }
 });
 
 // Keyboard activation for wishlist hearts (a11y).
@@ -771,6 +831,7 @@ function initScrollChrome() {
     document.body.appendChild(bar);
 
     const nav = document.querySelector(".navbar");
+    const heroPhotos = document.querySelectorAll(".hero-photo");
     let ticking = false;
 
     const update = () => {
@@ -779,6 +840,14 @@ function initScrollChrome() {
         const pct = height > 0 ? (scrollTop / height) * 100 : 0;
         bar.style.transform = `scaleX(${pct / 100})`;
         if (nav) nav.classList.toggle("nav-scrolled", scrollTop > 20);
+
+        /* Hero collage parallax — each photo drifts at its own speed
+           while the hero is in view. Compositor-only (translateY). */
+        if (heroPhotos.length && scrollTop < window.innerHeight) {
+            heroPhotos.forEach((ph, i) => {
+                ph.style.setProperty("--parallax", (scrollTop * (0.06 + i * 0.05)).toFixed(1) + "px");
+            });
+        }
         ticking = false;
     };
 
@@ -804,7 +873,7 @@ function initTiltCards() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
-    const cards = document.querySelectorAll(".category-card, .benefit");
+    const cards = document.querySelectorAll(".benefit");
     const MAX = 5; // deg
 
     cards.forEach((card) => {
@@ -889,7 +958,7 @@ function initCardZoomPan() {
     };
 
     document.addEventListener("mousemove", (e) => {
-        const wrap = e.target.closest && e.target.closest(".card-image-wrapper");
+        const wrap = e.target.closest && e.target.closest(".card-image-wrapper, .gallery-item, .category-card");
         if (!wrap) {
             if (active) { reset(active); active = null; }
             return;
@@ -911,7 +980,7 @@ function initCardZoomPan() {
     /* Safety reset when the pointer leaves a card entirely. */
     document.addEventListener("mouseout", (e) => {
         if (active && !(e.relatedTarget && e.relatedTarget.closest &&
-            e.relatedTarget.closest(".card-image-wrapper"))) {
+            e.relatedTarget.closest(".card-image-wrapper, .gallery-item, .category-card"))) {
             reset(active);
             active = null;
         }
@@ -919,3 +988,38 @@ function initCardZoomPan() {
 }
 
 document.addEventListener("DOMContentLoaded", initCardZoomPan);
+
+
+/* ================= PWA SERVICE WORKER ================= */
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch((err) => {
+            console.warn("SW registration failed:", err.message);
+        });
+    });
+}
+
+
+/* ================= RECENTLY VIEWED =================
+   Product page records views; index renders a strip from the cached
+   catalog. Stored newest-first, capped at 8, guarded parse. */
+
+const RV_KEY = "cn_recently_viewed";
+
+function recordRecentlyViewed(id) {
+    id = String(id || "");
+    if (!id) return;
+    let list = getRecentlyViewed().filter(x => x !== id);
+    list.unshift(id);
+    localStorage.setItem(RV_KEY, JSON.stringify(list.slice(0, 8)));
+}
+
+function getRecentlyViewed() {
+    try {
+        const raw = JSON.parse(localStorage.getItem(RV_KEY)) || [];
+        return Array.isArray(raw) ? raw.map(String) : [];
+    } catch {
+        return [];
+    }
+}

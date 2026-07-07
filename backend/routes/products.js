@@ -4,6 +4,7 @@ const Product = require("../models/Product");
 const Review = require("../models/Review");
 const User = require("../models/User");
 const { protect, sellerOrAdmin, adminOnly } = require("../middleware/auth");
+const optimizeImages = require("../middleware/optimizeImage");
 const { body, validationResult } = require("express-validator");
 
 const multer = require("multer");
@@ -190,6 +191,7 @@ router.post(
   protect,
   sellerOrAdmin,
   upload.array("images", 5),
+  optimizeImages(1200),
   [
     body("name").trim().notEmpty().withMessage("Product name is required"),
     body("price").isFloat({ gt: 0 }).withMessage("Price must be greater than 0"),
@@ -353,6 +355,32 @@ router.post("/:id/reviews", protect, async (req, res) => {
     await product.save();
 
     res.status(201).json({ rating: product.rating, numReviews: product.numReviews });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// @POST /api/products/:id/like — protect
+router.post("/:id/like", protect, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const userId = req.user._id;
+    const isLiked = product.likes.includes(userId);
+
+    if (isLiked) {
+      product.likes = product.likes.filter((id) => id.toString() !== userId.toString());
+    } else {
+      product.likes.push(userId);
+    }
+
+    await product.save();
+    res.json({
+      liked: !isLiked,
+      likesCount: product.likes.length,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

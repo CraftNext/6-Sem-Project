@@ -4,8 +4,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="List your handmade artwork for sale on CraftNext.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="Sell Your Art - CraftNext">
+<meta property="og:description" content="List your handmade artwork for sale on CraftNext.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Sell Your Art - CraftNext</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 <style>
 
@@ -92,7 +102,7 @@ background:var(--accent-dark);
 }
 
 </style>
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 <body>
@@ -102,7 +112,7 @@ background:var(--accent-dark);
 <header class="navbar">
 <a class="brand" href="index.html">CraftNext</a>
 
-<div>
+<div class="nav-links">
 <a href="index.html" class="back-btn">← Back to Home</a>
 <span id="navUser"></span>
 </div>
@@ -146,19 +156,17 @@ background:var(--accent-dark);
 </section>
 
 
-<script src="api.js"></script>
+<script src="api.js?v=5"></script>
+<script src="script.js?v=5"></script>
 
 <script>
 
 /* ================= LOGIN / ROLE GUARD ================= */
 
-const user = localStorage.getItem("cn_user")
-? JSON.parse(localStorage.getItem("cn_user"))
-: null;
+const user = getUser(); // guarded parse from api.js
 
 if(!user){
-alert("Please login first");
-window.location.href="login.html";
+window.location.href="login.html?role=seller";
 }
 
 if(user && user.role === "seller"){
@@ -202,9 +210,9 @@ document.getElementById("sellForm").addEventListener("submit", function(e){
 
 e.preventDefault();
 
-alert("To sell products, please register as a Seller.");
+showToast("To sell products, please register as a Seller.", "info");
 
-window.location.href = "login.html";
+setTimeout(() => { window.location.href = "login.html?role=seller"; }, 1400);
 
 });
 

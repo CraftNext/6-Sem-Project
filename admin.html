@@ -4,9 +4,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CraftNext admin dashboard - users, products, orders and analytics.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="Admin Dashboard – CraftNext">
+<meta property="og:description" content="CraftNext admin dashboard - users, products, orders and analytics.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Admin Dashboard – CraftNext</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 <style>
@@ -917,7 +927,7 @@ html[data-theme="dark"] .table-toggle-badge.active-gallery:hover {
   border-color: #a855f7;
 }
 </style>
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 <body>
@@ -1260,8 +1270,8 @@ html[data-theme="dark"] .table-toggle-badge.active-gallery:hover {
 </div>
 
 
-<script src="api.js"></script>
-<script src="script.js"></script>
+<script src="api.js?v=5"></script>
+<script src="script.js?v=5"></script>
 <script>
 
 function updateUploadFileList(input) {
@@ -1344,30 +1354,64 @@ async function clearAnalyticsData() {
 function renderStatCards(d) {
   document.getElementById("statsGrid").innerHTML = `
     <div class="stat-card">
-      <div class="stat-value">₹${(d.totalRevenue||0).toLocaleString("en-IN")}</div>
+      <div class="stat-value" data-countup="${d.totalRevenue||0}" data-prefix="₹">₹0</div>
       <div class="stat-label">Total Revenue</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">${d.totalOrders}</div>
+      <div class="stat-value" data-countup="${d.totalOrders}">0</div>
       <div class="stat-label">Total Orders</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">${d.totalUsers}</div>
+      <div class="stat-value" data-countup="${d.totalUsers}">0</div>
       <div class="stat-label">Registered Users</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">${d.totalProducts}</div>
+      <div class="stat-value" data-countup="${d.totalProducts}">0</div>
       <div class="stat-label">Active Products</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">${d.pendingOrders}</div>
+      <div class="stat-value" data-countup="${d.pendingOrders}">0</div>
       <div class="stat-label">Pending Orders</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value">${d.totalSellers}</div>
+      <div class="stat-value" data-countup="${d.totalSellers}">0</div>
       <div class="stat-label">Active Sellers</div>
     </div>
   `;
+  runCountUps();
+}
+
+/* Animate stat numbers from 0 to target with an ease-out curve. */
+function runCountUps() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.querySelectorAll("[data-countup]").forEach(el => {
+      el.textContent = (el.dataset.prefix || "") + Number(el.dataset.countup).toLocaleString("en-IN");
+    });
+    return;
+  }
+  document.querySelectorAll("[data-countup]").forEach(el => {
+    const target = Number(el.dataset.countup) || 0;
+    const prefix = el.dataset.prefix || "";
+    const dur = 900;
+    const t0 = performance.now();
+    let done = false;
+    function tick(now) {
+      if (done) return;
+      const p = Math.min((now - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      el.textContent = prefix + Math.round(target * eased).toLocaleString("en-IN");
+      if (p < 1) requestAnimationFrame(tick);
+      else done = true;
+    }
+    requestAnimationFrame(tick);
+    /* rAF pauses in background tabs - guarantee the final value. */
+    setTimeout(() => {
+      if (!done) {
+        done = true;
+        el.textContent = prefix + target.toLocaleString("en-IN");
+      }
+    }, dur + 300);
+  });
 }
 
 function renderCharts(d) {

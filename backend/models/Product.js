@@ -42,6 +42,7 @@ const productSchema = new mongoose.Schema(
     // products (created before this field existed) don't vanish from the
     // public listing — the public query treats missing as approved too.
     isApproved: { type: Boolean, default: true },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

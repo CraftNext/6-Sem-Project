@@ -3,9 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Log in or create your CraftNext account as a buyer or seller.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="Login – CraftNext">
+<meta property="og:description" content="Log in or create your CraftNext account as a buyer or seller.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Login – CraftNext</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 <style>
 .auth-page {
@@ -259,7 +269,7 @@
 .resend-btn:hover { text-decoration: underline; }
 .resend-btn:disabled { color: var(--muted); cursor: default; text-decoration: none; }
 </style>
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 <body>
@@ -364,7 +374,7 @@
 </div>
 
 
-<script src="api.js"></script>
+<script src="api.js?v=5"></script>
 <script>
 
 let mode = "login";
@@ -681,6 +691,11 @@ async function handleSubmit(e) {
     enterResetMode(email, token);
   } else if (params.get("sessionExpired")) {
     showError("Your session expired. Please sign in again.");
+  }
+
+  const roleParam = params.get("role");
+  if (roleParam === "seller" || roleParam === "buyer" || roleParam === "admin") {
+    setRole(roleParam);
   }
 })();
 

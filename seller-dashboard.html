@@ -5,9 +5,19 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Manage your products and orders as a CraftNext seller.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b3491f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CraftNext">
+<meta property="og:title" content="Seller Dashboard – CraftNext">
+<meta property="og:description" content="Manage your products and orders as a CraftNext seller.">
+<meta property="og:image" content="Images/Lippan Art/best1.jpeg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Seller Dashboard – CraftNext</title>
 
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 <style>
 /* .dashboard/.topbar/.products-grid/.product-card/.product-img/.product-info/
@@ -236,7 +246,7 @@ border:1px solid var(--line);
 }
 </style>
 
-<script src="theme.js"></script>
+<script src="theme.js?v=5"></script>
 </head>
 
 
@@ -267,6 +277,9 @@ border:1px solid var(--line);
 <div class="tabs">
   <button class="tab-btn active" onclick="showTab('products', this)">My Products</button>
   <button class="tab-btn" onclick="showTab('orders', this)">Orders</button>
+  <button class="tab-btn" onclick="showTab('analytics', this)">Analytics</button>
+  <button class="tab-btn" onclick="showTab('broadcasts', this)">Broadcasts</button>
+  <button class="tab-btn" onclick="showTab('chats', this)">Inbox</button>
 </div>
 
 <div class="tab-panel active" id="tab-products">
@@ -290,6 +303,58 @@ border:1px solid var(--line);
         <tr><td colspan="6" class="loader">Loading…</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<div class="tab-panel" id="tab-analytics">
+  <div id="sellerStatsRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px;"></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;">
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px;min-width:0;">
+      <h3 style="font-size:15px;margin-bottom:14px;font-family:var(--font-serif)">Revenue (Last 6 Months)</h3>
+      <canvas id="sellerRevenueChart" height="220"></canvas>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:20px;min-width:0;">
+      <h3 style="font-size:15px;margin-bottom:14px;font-family:var(--font-serif)">Order Status</h3>
+      <canvas id="sellerStatusChart" height="220"></canvas>
+    </div>
+  </div>
+  <p id="analyticsEmpty" style="display:none;color:var(--muted);text-align:center;padding:30px">No orders yet — analytics will appear after your first sale.</p>
+</div>
+
+<div class="tab-panel" id="tab-broadcasts">
+  <div class="data-table-wrapper" style="max-width: 800px; margin-bottom: 24px; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;">
+    <h3 style="margin-bottom: 16px; font-family: var(--font-serif)">Post a New Broadcast Update</h3>
+    <textarea id="broadcastInput" placeholder="Write your announcement here (e.g. New Lippan art incoming, discount codes, daily specials...)" style="width: 100%; min-height: 100px; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--line); font: inherit; outline: none; margin-bottom: 12px; resize: vertical; background: var(--surface); color: var(--text);"></textarea>
+    <button onclick="postBroadcast()" style="padding: 10px 20px; background: var(--ink); color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font: inherit;">Publish Announcement</button>
+  </div>
+  
+  <h3 style="margin-bottom: 16px; font-family: var(--font-serif)">Past Announcements</h3>
+  <div class="broadcast-list" id="dashboardBroadcastList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+</div>
+
+<div class="tab-panel" id="tab-chats">
+  <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px; min-height: 500px;">
+    <!-- Conversations Sidebar -->
+    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; overflow-y: auto;">
+      <h3 style="font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; font-family: var(--font-serif)">Conversations</h3>
+      <div id="dashboardChatList" style="display: flex; flex-direction: column; gap: 8px;">
+        <p style="font-size: 13px; color: var(--muted); text-align: center;">No active chats</p>
+      </div>
+    </div>
+    
+    <!-- Chat History Pane -->
+    <div id="dashboardChatPane" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; height: 500px;">
+      <div style="border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 16px;">
+        <h3 id="dashboardChatPartnerName" style="font-size: 16px; font-family: var(--font-serif)">Select a conversation</h3>
+      </div>
+      <div id="dashboardChatMessages" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 12px; background: var(--bg); border-radius: var(--radius-sm); margin-bottom: 16px;">
+        <p style="color: var(--muted); text-align: center; margin-top: 100px;">Please select a buyer from the sidebar to chat</p>
+      </div>
+      <div id="dashboardChatInputArea" style="display: flex; gap: 8px; display: none;">
+        <input type="text" id="dashboardChatInput" placeholder="Type your reply..." style="flex: 1; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); font: inherit; outline: none; background: var(--surface); color: var(--text);" onkeydown="if(event.key === 'Enter') sendDashboardChatMessage()">
+        <button onclick="sendDashboardChatMessage()" style="padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; font: inherit;">Send</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -338,12 +403,13 @@ border:1px solid var(--line);
 </div>
 
 
-<script src="api.js"></script>
+<script src="api.js?v=5"></script>
+<script src="script.js?v=5"></script>
 <script>
 
 /* AUTH CHECK */
 
-const user = JSON.parse(localStorage.getItem("cn_user"));
+const user = getUser(); // guarded parse from api.js
 
 if(!user || user.role !== "seller"){
 alert("Seller login required");
@@ -362,6 +428,95 @@ function showTab(name, btn) {
   document.getElementById("tab-" + name).classList.add("active");
   btn.classList.add("active");
   if (name === "orders") loadOrders();
+  if (name === "analytics") loadAnalytics();
+  if (name === "broadcasts") loadBroadcasts();
+  if (name === "chats") loadChats();
+}
+
+
+/* ================= SELLER ANALYTICS =================
+   Computed client-side from this seller's own order slice — revenue
+   counts only THIS seller's items inside each (possibly multi-seller)
+   order. Chart.js is loaded lazily the first time the tab opens. */
+
+let sellerCharts = {};
+
+function loadChartJs() {
+  return new Promise((resolve, reject) => {
+    if (window.Chart) return resolve();
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js";
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("Chart.js failed to load"));
+    document.head.appendChild(s);
+  });
+}
+
+async function loadAnalytics() {
+  try {
+    await loadChartJs();
+    const orders = await Orders.sellerOrders();
+
+    const mineIn = (o) => o.items.filter(i =>
+      i.seller === user._id || i.sellerName === user.shopName || i.sellerName === user.name);
+
+    const live = orders.filter(o => o.status !== "cancelled");
+    let revenue = 0, itemsSold = 0;
+    live.forEach(o => mineIn(o).forEach(i => { revenue += i.price * i.qty; itemsSold += i.qty; }));
+
+    document.getElementById("sellerStatsRow").innerHTML = [
+      ["₹" + revenue.toLocaleString("en-IN"), "My Revenue"],
+      [live.length, "Orders"],
+      [itemsSold, "Items Sold"],
+      ["₹" + (live.length ? Math.round(revenue / live.length).toLocaleString("en-IN") : 0), "Avg Order"],
+    ].map(([v, l]) => `
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;font-family:var(--font-serif);color:var(--ink)">${v}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${l}</div>
+      </div>`).join("");
+
+    const hasData = orders.length > 0;
+    document.getElementById("analyticsEmpty").style.display = hasData ? "none" : "block";
+    if (!hasData) return;
+
+    // Revenue by month (last 6)
+    const months = [];
+    const now = new Date();
+    for (let k = 5; k >= 0; k--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - k, 1);
+      months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString("en-IN", { month: "short", year: "2-digit" }), total: 0 });
+    }
+    live.forEach(o => {
+      const d = new Date(o.createdAt);
+      const m = months.find(x => x.key === `${d.getFullYear()}-${d.getMonth()}`);
+      if (m) mineIn(o).forEach(i => { m.total += i.price * i.qty; });
+    });
+
+    // Status distribution
+    const statuses = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
+    const statusCounts = statuses.map(s => orders.filter(o => o.status === s).length);
+
+    Object.values(sellerCharts).forEach(c => c.destroy());
+    sellerCharts.revenue = new Chart(document.getElementById("sellerRevenueChart"), {
+      type: "bar",
+      data: {
+        labels: months.map(m => m.label),
+        datasets: [{ data: months.map(m => m.total), backgroundColor: "rgba(182,83,43,0.75)", borderColor: "#b6532b", borderWidth: 1, borderRadius: 6 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+    sellerCharts.status = new Chart(document.getElementById("sellerStatusChart"), {
+      type: "doughnut",
+      data: {
+        labels: statuses,
+        datasets: [{ data: statusCounts, backgroundColor: ["#93702e", "#3e6c8c", "#7a7266", "#4b7a52", "#8f4322"], borderColor: "#fff", borderWidth: 2 }]
+      },
+      options: { plugins: { legend: { position: "bottom" } } }
+    });
+  } catch (err) {
+    document.getElementById("sellerStatsRow").innerHTML =
+      `<p style="color:var(--danger)">Could not load analytics: ${esc(err.message)}</p>`;
+  }
 }
 
 
@@ -620,6 +775,137 @@ async function updateOrderStatus(id, status) {
 
 
 loadProducts();
+
+
+/* ================= BROADCASTS LOGIC ================= */
+
+async function loadBroadcasts() {
+  const container = document.getElementById("dashboardBroadcastList");
+  container.innerHTML = "<p class='loader'>Loading announcements…</p>";
+  try {
+    const profile = await Auth.me();
+    const broadcasts = profile.broadcasts || [];
+    if (!broadcasts.length) {
+      container.innerHTML = "<p style='color: var(--muted); padding: 24px; text-align: center;'>No announcements posted yet.</p>";
+      return;
+    }
+    container.innerHTML = broadcasts.map(b => `
+      <div style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px 20px; max-width: 800px; display: flex; justify-content: space-between; align-items: flex-start; box-shadow: var(--shadow-sm);">
+        <div>
+          <div style="color: var(--muted); font-size: 11px; margin-bottom: 6px; font-weight: 500;">Published on ${new Date(b.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" })}</div>
+          <div style="font-size: 14.5px; color: var(--text); line-height: 1.5; white-space: pre-wrap;">${esc(b.message)}</div>
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    container.innerHTML = "<p style='color: var(--danger); padding: 24px; text-align: center;'>Failed to load announcements.</p>";
+  }
+}
+
+async function postBroadcast() {
+  const input = document.getElementById("broadcastInput");
+  const text = input.value.trim();
+  if (!text) return;
+  
+  try {
+    await Auth.broadcast(text);
+    input.value = "";
+    showToast("Announcement published successfully!", "success");
+    loadBroadcasts();
+  } catch (err) {
+    showToast(err.message || "Failed to publish announcement", "error");
+  }
+}
+
+
+/* ================= INBOX / CHATS LOGIC ================= */
+
+let activeConversationUserId = null;
+let chatPaneTimer = null;
+
+async function loadChats() {
+  const sidebar = document.getElementById("dashboardChatList");
+  try {
+    const convs = await Messages.getConversations();
+    if (!convs.length) {
+      sidebar.innerHTML = "<p style='font-size: 13px; color: var(--muted); text-align: center; margin-top: 20px;'>No messages received yet.</p>";
+      return;
+    }
+
+    sidebar.innerHTML = convs.map(c => {
+      const activeClass = activeConversationUserId === c.partner._id ? "active" : "";
+      return `
+        <div onclick="selectConversation('${c.partner._id}', '${esc(c.partner.name)}')" class="chat-list-item ${activeClass}" style="padding: 12px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s; border: 1.5px solid var(--line); display: flex; flex-direction: column; gap: 4px; ${activeConversationUserId === c.partner._id ? "background: var(--surface-2); border-color: var(--line-strong);" : "background: var(--surface);"}" onmouseover="this.style.background='var(--surface-2)'" onmouseout="if('${activeConversationUserId}' !== '${c.partner._id}') this.style.background='var(--surface)'">
+          <strong style="font-size: 13.5px; color: var(--ink);">${esc(c.partner.name)}</strong>
+          <span style="font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;">${esc(c.lastMessage)}</span>
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    sidebar.innerHTML = "<p style='font-size: 11px; color: var(--danger);'>Failed to load inbox.</p>";
+  }
+}
+
+function selectConversation(userId, partnerName) {
+  activeConversationUserId = userId;
+  document.getElementById("dashboardChatPartnerName").innerText = partnerName;
+  document.getElementById("dashboardChatInputArea").style.display = "flex";
+  
+  loadChats();
+  loadConversationMessages();
+  
+  if (chatPaneTimer) clearInterval(chatPaneTimer);
+  chatPaneTimer = setInterval(loadConversationMessages, 3000);
+}
+
+async function loadConversationMessages() {
+  if (!activeConversationUserId) return;
+  const box = document.getElementById("dashboardChatMessages");
+  try {
+    const messages = await Messages.getHistory(activeConversationUserId);
+    const atBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 40;
+
+    box.innerHTML = messages.map(m => {
+      const isSent = m.sender === user._id || (m.sender._id && m.sender._id === user._id);
+      const timeStr = new Date(m.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+      return `
+        <div style="max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.4; word-break: break-word; margin-bottom: 8px; ${
+          isSent
+            ? "align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 3px;"
+            : "align-self: flex-start; background: var(--surface); color: var(--text); border-bottom-left-radius: 3px; border: 1px solid var(--line);"
+        }">
+          <div>${esc(m.content)}</div>
+          <span style="font-size: 9px; color: ${isSent ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.3)"}; margin-top: 4px; display: block; text-align: right;">${timeStr}</span>
+        </div>
+      `;
+    }).join("");
+
+    if (atBottom || box.scrollTop === 0) {
+      box.scrollTop = box.scrollHeight;
+    }
+  } catch (err) {
+    console.error("Failed to load messages:", err);
+  }
+}
+
+async function sendDashboardChatMessage() {
+  const input = document.getElementById("dashboardChatInput");
+  const text = input.value.trim();
+  if (!text || !activeConversationUserId) return;
+
+  try {
+    await Messages.send(activeConversationUserId, text);
+    input.value = "";
+    loadConversationMessages();
+    loadChats();
+  } catch (err) {
+    showToast("Failed to send message", "error");
+  }
+}
+
+window.addEventListener("blur", () => {
+  if (chatPaneTimer) { clearInterval(chatPaneTimer); chatPaneTimer = null; }
+});
 
 </script>
 

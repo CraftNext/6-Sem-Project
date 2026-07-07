@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const multer = require("multer");
+const optimizeImages = require("../middleware/optimizeImage");
 const path = require("path");
 const fs = require("fs");
 const { body, validationResult } = require("express-validator");
@@ -47,7 +48,7 @@ const avatarUpload = multer({
 });
 
 // @POST /api/auth/avatar  (protected)
-router.post("/avatar", protect, avatarUpload.single("avatar"), async (req, res) => {
+router.post("/avatar", protect, avatarUpload.single("avatar"), optimizeImages(400), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No image uploaded" });
 
@@ -374,5 +375,72 @@ router.post("/logout", (req, res) => {
   res.clearCookie("cn_token");
   res.json({ message: "Logged out successfully" });
 });
+
+// @GET /api/auth/seller/:id — public, get seller profile details
+router.get("/seller/:id", async (req, res) => {
+  try {
+    const seller = await User.findById(req.params.id).select(
+      "name role shopName shopDescription location avatar followers broadcasts"
+    );
+    if (!seller || seller.role !== "seller") {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    res.json(seller);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @POST /api/auth/seller/:id/follow — protect, follow/unfollow a seller
+router.post("/seller/:id/follow", protect, async (req, res) => {
+  try {
+    const seller = await User.findById(req.params.id);
+    if (!seller || seller.role !== "seller") {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    const userId = req.user._id;
+    const isFollowing = seller.followers.includes(userId);
+
+    if (isFollowing) {
+      seller.followers = seller.followers.filter(
+        (f) => f.toString() !== userId.toString()
+      );
+    } else {
+      seller.followers.push(userId);
+    }
+
+    await seller.save();
+    res.json({
+      following: !isFollowing,
+      followersCount: seller.followers.length,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @POST /api/auth/seller/broadcast — protect, seller-only, post a broadcast
+router.post("/seller/broadcast", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "seller" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only sellers can broadcast messages" });
+    }
+
+    const { message } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ message: "Message is required" });
+    }
+
+    const seller = await User.findById(req.user._id);
+    seller.broadcasts.unshift({ message: message.trim() });
+    await seller.save();
+
+    res.status(201).json(seller.broadcasts[0]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 module.exports = router;
