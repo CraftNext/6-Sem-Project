@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["backend/server.js"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "static-frontend",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "-p", "5500", "-c-1", "."],
+      "port": 5500,
+      "autoPort": true
+    }
+  ]
+}

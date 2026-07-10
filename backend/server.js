@@ -18,7 +18,9 @@ connectDB();
 // Background sweep: reclaim stock from online orders whose payment window
 // lapsed without completing (see utils/reclaimStock).
 const { startReservationSweep } = require("./utils/reclaimStock");
-startReservationSweep();
+if (process.env.MONGO_URI) {
+  startReservationSweep();
+}
 
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {

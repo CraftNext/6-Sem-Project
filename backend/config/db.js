@@ -5,6 +5,15 @@ const mongoose = require("mongoose");
 const RETRY_MS = 5000;
 
 const connectDB = async () => {
+  if (!process.env.MONGO_URI) {
+    const message = "MONGO_URI is not set; skipping MongoDB connection.";
+    if (process.env.NODE_ENV === "production") {
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+    console.warn(`⚠️ ${message}`);
+    return;
+  }
   try {
     await mongoose.connect(process.env.MONGO_URI, {
       family: 4

@@ -48,22 +48,21 @@
     --nav-bg:       rgba(243,243,238,.86);
     --dot:          rgba(16,16,25,.05);
 
-    /* Former glass layer — now solid paper so every page that kept
-       the token names renders flat chalk surfaces. */
-    --glass:        #FBFBF7;
-    --glass-strong: #FBFBF7;
-    --glass-border: rgba(16,16,25,.32);
-    --glass-blur:   none;
+    /* Glass layer — soft translucent surfaces that refract the ambient wash */
+    --glass:        rgba(251,251,247,.72);
+    --glass-strong: rgba(251,251,247,.86);
+    --glass-border: rgba(16,16,25,.12);
+    --glass-blur:   blur(16px);
 
-    --radius-sm:    2px;
-    --radius:       2px;
-    --radius-lg:    2px;
+    --radius-sm:    10px;
+    --radius:       16px;
+    --radius-lg:    24px;
 
-    /* Print-block offset shadows, not soft blurs */
-    --shadow-sm:    3px 3px 0 rgba(16,16,25,.10);
-    --shadow:       5px 5px 0 rgba(16,16,25,.12);
-    --shadow-lg:    8px 8px 0 rgba(16,16,25,.14);
-    --shadow-pop:   6px 6px 0 var(--accent);
+    /* Soft ambient shadows */
+    --shadow-sm:    0 2px 8px rgba(16,16,25,.08);
+    --shadow:       0 8px 24px rgba(16,16,25,.10);
+    --shadow-lg:    0 20px 48px rgba(16,16,25,.14);
+    --shadow-pop:   0 10px 30px rgba(179,73,31,.28);
 
     --font-serif:   'Archivo', 'Arial Narrow', sans-serif;   /* display role */
     --font-sans:    'Schibsted Grotesk', 'Segoe UI', sans-serif;
@@ -105,14 +104,14 @@ html[data-theme="dark"] {
     --nav-bg:       rgba(16,16,25,.88);
     --dot:          rgba(243,243,238,.05);
 
-    --glass:        #16161f;
-    --glass-strong: #16161f;
-    --glass-border: rgba(243,243,238,.34);
+    --glass:        rgba(22,22,31,.72);
+    --glass-strong: rgba(22,22,31,.86);
+    --glass-border: rgba(243,243,238,.14);
 
-    --shadow-sm:    3px 3px 0 rgba(0,0,0,.4);
-    --shadow:       5px 5px 0 rgba(0,0,0,.45);
-    --shadow-lg:    8px 8px 0 rgba(0,0,0,.5);
-    --shadow-pop:   6px 6px 0 var(--accent);
+    --shadow-sm:    0 2px 8px rgba(0,0,0,.35);
+    --shadow:       0 8px 24px rgba(0,0,0,.4);
+    --shadow-lg:    0 20px 48px rgba(0,0,0,.5);
+    --shadow-pop:   0 10px 30px rgba(224,98,54,.35);
     --ring:         0 0 0 3px rgba(224,98,54,.3);
 }
 
@@ -532,7 +531,21 @@ input, select, textarea {
     padding: 6px 14px;
     border-radius: 999px;
     margin-bottom: 22px;
+    cursor: default;
+    transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease, background-color .25s ease, color .25s ease;
     animation: fadeInLeft .6s cubic-bezier(.16,1,.3,1) .1s backwards;
+}
+
+.hero-eyebrow:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-sm), 0 0 0 1px rgba(179,73,31,.08) inset;
+    border-color: var(--accent);
+    background: linear-gradient(180deg, var(--accent-soft), rgba(255,255,255,.18));
+    color: var(--accent-ink);
+}
+
+html[data-theme="dark"] .hero-eyebrow:hover {
+    background: linear-gradient(180deg, rgba(224,98,54,.18), rgba(255,255,255,.04));
 }
 
 .hero-content h1 {
@@ -583,8 +596,12 @@ input, select, textarea {
     flex-shrink: 0;
 }
 
-.hero-photo {
+.hero-photo-wrap {
     position: absolute;
+}
+
+.hero-photo {
+    display: block;
     object-fit: cover;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
@@ -593,11 +610,23 @@ input, select, textarea {
     animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) backwards;
 }
 
-.hero-photo-1 { width: 210px; height: 250px; top: 0; right: 0; z-index: 3; transform: rotate(2.5deg); animation-delay: .3s; }
-.hero-photo-2 { width: 165px; height: 165px; bottom: 6px; left: 0; z-index: 2; transform: rotate(-4deg); animation-delay: .5s; animation-name: heroPhotoIn, heroFloat; animation-duration: .8s, 5s; animation-timing-function: cubic-bezier(.16,1,.3,1), ease-in-out; animation-fill-mode: backwards, none; animation-iteration-count: 1, infinite; animation-delay: .5s, 1.3s; }
-.hero-photo-3 { width: 135px; height: 135px; top: 26px; left: 44px; z-index: 1; transform: rotate(6deg); animation-delay: .7s; animation-name: heroPhotoIn, heroFloat; animation-duration: .8s, 6s; animation-timing-function: cubic-bezier(.16,1,.3,1), ease-in-out; animation-fill-mode: backwards, none; animation-iteration-count: 1, infinite; animation-delay: .7s, 1.5s; }
 
-.hero-visual:hover .hero-photo { transform: rotate(0deg) scale(1.02); animation-name: none; }
+.hero-photo-1-wrap { width: 210px; height: 250px; top: 0; right: 0; z-index: 3; transform: rotate(2.5deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .3s backwards; }
+.hero-photo-2-wrap { width: 165px; height: 165px; bottom: 6px; left: 0; z-index: 2; transform: rotate(-4deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .5s backwards, heroFloat 5s ease-in-out 1.3s infinite; }
+.hero-photo-3-wrap { width: 135px; height: 135px; top: 26px; left: 44px; z-index: 1; transform: rotate(6deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .7s backwards, heroFloat 6s ease-in-out 1.5s infinite; }
+
+.hero-photo-wrap .hero-photo {
+    width: 100%;
+    height: 100%;
+}
+
+.hero-photo-wrap:hover .hero-photo {
+    transform: scale(1.08);
+}
+
+.hero-photo-wrap:hover {
+    filter: saturate(1.03);
+}
 
 @media (max-width: 900px) {
     .hero-visual { display: none; }
@@ -729,6 +758,10 @@ section + section { border-top: 1px solid var(--line); }
     transition:
         transform .45s cubic-bezier(0.22, 0.61, 0.36, 1),
         transform-origin .45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.category-card:hover img {
+    transform: scale(1.08);
 }
 
 /* Gradient scrim keeps the overlaid label readable on any photo */

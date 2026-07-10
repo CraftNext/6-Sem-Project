@@ -951,6 +951,7 @@ function initCardZoomPan() {
 
     const ZOOM = 1.4;
     let active = null; // current <img>
+    const CARD_SELECTOR = ".product-card, .card-image-wrapper, .gallery-item, .category-card, .hero-photo-wrap";
 
     const reset = (img) => {
         img.style.transform = "";
@@ -958,12 +959,17 @@ function initCardZoomPan() {
     };
 
     document.addEventListener("mousemove", (e) => {
-        const wrap = e.target.closest && e.target.closest(".card-image-wrapper, .gallery-item, .category-card");
-        if (!wrap) {
+        const card = e.target.closest && e.target.closest(CARD_SELECTOR);
+        if (!card) {
             if (active) { reset(active); active = null; }
             return;
         }
-        const img = wrap.querySelector("img");
+        const wrap = card.classList.contains("product-card")
+            ? card.querySelector(".card-image-wrapper")
+            : card.classList.contains("hero-photo-wrap")
+                ? card
+            : card;
+        const img = wrap && wrap.querySelector("img");
         if (!img) return;
         if (active && active !== img) reset(active);
         active = img;
@@ -980,7 +986,7 @@ function initCardZoomPan() {
     /* Safety reset when the pointer leaves a card entirely. */
     document.addEventListener("mouseout", (e) => {
         if (active && !(e.relatedTarget && e.relatedTarget.closest &&
-            e.relatedTarget.closest(".card-image-wrapper, .gallery-item, .category-card"))) {
+            e.relatedTarget.closest(CARD_SELECTOR))) {
             reset(active);
             active = null;
         }
