@@ -16,7 +16,7 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["spiritual", "clock", "lippan", "diya", "zharokha", "other"],
+      enum: ["spiritual", "clock", "lippan", "diya", "zharokha", "toran", "pipe-cleaner", "puja-thali", "other"],
       lowercase: true,
     },
     images: [{ type: String }],

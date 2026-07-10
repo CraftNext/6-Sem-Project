@@ -195,7 +195,7 @@ router.post(
   [
     body("name").trim().notEmpty().withMessage("Product name is required"),
     body("price").isFloat({ gt: 0 }).withMessage("Price must be greater than 0"),
-    body("category").isIn(["spiritual", "clock", "lippan", "diya", "zharokha", "other"]).withMessage("Invalid category"),
+    body("category").isIn(["spiritual", "clock", "lippan", "diya", "zharokha", "toran", "pipe-cleaner", "puja-thali", "other"]).withMessage("Invalid category"),
     body("stock").optional({ values: "falsy" }).isInt({ min: 0 }).withMessage("Stock cannot be negative"),
   ],
   async (req, res) => {

@@ -27,16 +27,16 @@ const SELLER = {
 const PRODUCTS = [
   {
     name: "Krishna Painting",
-    price: 499,
+    price: 450,
     category: "spiritual",
-    img: "Images/Spritual Image/Krishna1.jpeg",
+    img: "Images/Spiritual Art/krishna-1.jpeg",
     bestSeller: true,
     description:
-      "Beautiful handmade Krishna painting crafted using traditional Indian art techniques. Perfect for spiritual home décor.",
+      "Hand-painted Krishna devotional artwork, crafted using traditional Indian art techniques. Perfect for spiritual home décor.",
   },
   {
     name: "Lippan Art",
-    price: 499,
+    price: 450,
     category: "lippan",
     img: "Images/Lippan Art/best1.jpeg",
     newArrival: true,
@@ -45,7 +45,7 @@ const PRODUCTS = [
   },
   {
     name: "Mandala Clock",
-    price: 599,
+    price: 650,
     category: "clock",
     img: "Images/Clock/Clock.jpeg",
     bestSeller: true,
@@ -54,16 +54,16 @@ const PRODUCTS = [
   },
   {
     name: "Kodi Art",
-    price: 499,
+    price: 75,
     category: "diya",
     img: "Images/Diya Art/1.jpeg",
     newArrival: true,
     description:
-      "Traditional Kodi art made using shells and vibrant colors, ideal for decorative display.",
+      "Traditional Kodi-shell decorated diya, hand-painted and ideal for festive and everyday display.",
   },
   {
     name: "Decorative Vase",
-    price: 499,
+    price: 550,
     category: "zharokha",
     img: "Images/Zharokha Art/1.jpeg",
     newArrival: true,

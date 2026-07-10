@@ -194,6 +194,23 @@ html[data-theme="dark"] body {
         radial-gradient(520px 420px at 8% 90%,  rgba(100,169,255,.06), transparent 60%);
 }
 
+/* ================= HERO REVEAL LAYER =================
+   Hidden collage image behind the normal background; a circular mask
+   follows the cursor to "reveal" a spotlight of it as you hover. */
+#bg-reveal {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: url('Images/collage-bg.png') center/cover no-repeat;
+    opacity: 0;
+    transition: opacity .3s ease;
+    -webkit-mask-image: radial-gradient(circle 160px at var(--mx, 50%) var(--my, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,.5) 60%, rgba(0,0,0,0) 100%);
+            mask-image: radial-gradient(circle 160px at var(--mx, 50%) var(--my, 50%), rgba(0,0,0,1) 0%, rgba(0,0,0,.5) 60%, rgba(0,0,0,0) 100%);
+}
+
+body.bg-reveal-active #bg-reveal { opacity: 1; }
+
 html { scroll-behavior: smooth; }
 img { max-width: 100%; }
 
@@ -620,12 +637,12 @@ html[data-theme="dark"] .hero-eyebrow:hover {
 
 .hero-stats .icon { width: 16px; height: 16px; color: var(--accent); }
 
-/* Hero collage */
+/* Hero collage — one photo per product category */
 .hero-visual {
     position: relative;
     z-index: 1;
-    width: 340px;
-    height: 350px;
+    width: 440px;
+    height: 430px;
     flex-shrink: 0;
 }
 
@@ -645,9 +662,13 @@ html[data-theme="dark"] .hero-eyebrow:hover {
 }
 
 
-.hero-photo-1-wrap { width: 210px; height: 250px; top: 0; right: 0; z-index: 3; transform: rotate(2.5deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .3s backwards; }
-.hero-photo-2-wrap { width: 165px; height: 165px; bottom: 6px; left: 0; z-index: 2; transform: rotate(-4deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .5s backwards, heroFloat 5s ease-in-out 1.3s infinite; }
-.hero-photo-3-wrap { width: 135px; height: 135px; top: 26px; left: 44px; z-index: 1; transform: rotate(6deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .7s backwards, heroFloat 6s ease-in-out 1.5s infinite; }
+.hero-photo-1-wrap { width: 200px; height: 230px; top: 0; right: 0; z-index: 5; transform: rotate(2deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .3s backwards; }
+.hero-photo-2-wrap { width: 160px; height: 160px; bottom: 0; left: 0; z-index: 3; transform: rotate(-4deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .5s backwards, heroFloat 5s ease-in-out 1.3s infinite; }
+.hero-photo-3-wrap { width: 150px; height: 150px; top: 190px; left: 80px; z-index: 6; transform: rotate(5deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .7s backwards, heroFloat 6s ease-in-out 1.5s infinite; }
+.hero-photo-4-wrap { width: 170px; height: 170px; top: 0; left: 0; z-index: 2; transform: rotate(-6deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .4s backwards; }
+.hero-photo-5-wrap { width: 150px; height: 210px; bottom: 0; right: 0; z-index: 1; transform: rotate(4deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .6s backwards; }
+.hero-photo-6-wrap { width: 110px; height: 110px; top: 40px; left: 150px; z-index: 7; transform: rotate(-8deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .8s backwards; }
+.hero-photo-7-wrap { width: 120px; height: 120px; bottom: 20px; left: 230px; z-index: 4; transform: rotate(7deg); animation: heroPhotoIn .8s cubic-bezier(.16,1,.3,1) .9s backwards, heroFloat 5.5s ease-in-out 1.4s infinite; }
 
 .hero-photo-wrap .hero-photo {
     width: 100%;
@@ -770,6 +791,41 @@ section + section { border-top: 1px solid var(--line); }
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 18px;
+}
+
+/* Opt-in via an extra .carousel-track class, same pattern as the product
+   carousels — turns the wrapping grid into a horizontal scroll-snap row. */
+.category-grid.carousel-track {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-behavior: smooth;
+    padding: 4px 4px 12px;
+    margin: -4px -4px 0;
+}
+
+.carousel-track .category-card {
+    flex: 0 0 220px;
+    scroll-snap-align: start;
+}
+
+/* Above this width all 8 category tiles fit comfortably, so the
+   scroll-carousel behavior (and its now-redundant arrows) turns back into
+   a fixed 4-per-row grid — 2 tidy rows of 4 — instead of wasting the extra
+   viewport width or wrapping unevenly. */
+@media (min-width: 1300px) {
+    #categories .carousel-arrows { display: none; }
+
+    .category-grid.carousel-track {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        overflow-x: visible;
+    }
+
+    .category-grid.carousel-track .category-card {
+        flex: initial;
+    }
 }
 
 .category-card {
@@ -1069,6 +1125,21 @@ html[data-theme="dark"] #global-cursor-tooltip strong { color: #f5f3f0; }
 
 .carousel-arrows { display: flex; gap: 8px; flex-shrink: 0; }
 
+.view-all-link {
+    color: var(--accent-ink);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-bottom: 1.5px solid transparent;
+    transition: border-color .2s ease, color .2s ease;
+}
+
+.view-all-link:hover {
+    border-color: currentColor;
+}
+
 .carousel-arrow {
     width: 42px;
     height: 42px;
@@ -1184,6 +1255,122 @@ html[data-theme="dark"] #global-cursor-tooltip strong { color: #f5f3f0; }
 .seller-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; }
 .seller-link { color: var(--accent-ink); text-decoration: none; font-weight: 600; }
 .seller-link:hover { text-decoration: underline; }
+
+/* ================= TESTIMONIALS ================= */
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+}
+
+.testimonial-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 22px;
+    transition: border-color .25s, transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;
+}
+
+.testimonial-card:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+}
+
+.testimonial-card .rating {
+    color: var(--accent);
+    font-size: 14px;
+    letter-spacing: .1em;
+    margin-bottom: 12px;
+}
+
+.testimonial-card p:not(.testimonial-author) {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.testimonial-author {
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+/* ================= BECOME A SELLER CTA ================= */
+.seller-cta-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    flex-wrap: wrap;
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 40px 44px;
+}
+
+.seller-cta-inner h2 { margin-bottom: 8px; }
+.seller-cta-inner p { max-width: 46ch; color: var(--text); }
+.seller-cta-inner .btn { flex-shrink: 0; background: var(--ink); color: var(--on-ink); }
+.seller-cta-inner .btn:hover { background: var(--accent-dark); }
+
+html[data-theme="dark"] .seller-cta-inner { background: var(--accent-soft); }
+
+/* ================= FAQ ================= */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 760px;
+}
+
+.faq-item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 4px 22px;
+    transition: border-color .2s ease;
+}
+
+.faq-item[open] {
+    border-color: var(--line-strong);
+}
+
+.faq-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 0;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.faq-item summary::-webkit-details-marker { display: none; }
+
+.faq-item summary::after {
+    content: "+";
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--accent);
+    transition: transform .25s ease;
+    flex-shrink: 0;
+}
+
+.faq-item[open] summary::after {
+    transform: rotate(45deg);
+}
+
+.faq-item p {
+    padding-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted);
+}
 
 /* ================= NEWSLETTER (always-dark anchor panel) ================= */
 .newsletter {
@@ -2522,17 +2709,20 @@ footer p { text-align: center; margin-top: 40px; font-size: 13px; color: #7d7566
 .gallery-item img {
     width: 100%;
     height: 240px;
-    object-fit: cover;
+    object-fit: contain;
+    background: var(--surface-2);
     display: block;
     transition:
-        transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
-        transform-origin 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
-        opacity 0.4s ease-in-out;
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transform-origin 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gallery-item img.out {
-    opacity: 0.05;
-    transform: scale(0.96);
+    opacity: 0;
+    transform: scale(1.05);
+    filter: blur(6px);
 }
 
 .gallery-item:hover img {
