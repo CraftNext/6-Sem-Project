@@ -632,7 +632,9 @@ async function loadCategoryImages() {
 
 loadCategoryImages();
 
-/* ——— SHOWCASE SHUFFLE GALLERY ——— */
+/* ——— ODOMETER REEL GALLERY ———
+   Each column is a vertical strip of images that scrolls upward on an
+   endless CSS loop, like a mechanical clock's digit wheels ticking. */
 async function initializeGallery() {
   const container = document.getElementById("galleryGrid");
   if (!container) return;
@@ -641,7 +643,6 @@ async function initializeGallery() {
     const res = await fetch(API_BASE + "/products?inGallery=true");
     let galleryProducts = await res.json();
 
-    // Fallback if no specific products are set in gallery
     if (!galleryProducts.length) {
       galleryProducts = ALL_PRODUCTS.slice(0, 8);
     }
@@ -650,84 +651,53 @@ async function initializeGallery() {
       container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>No items in the gallery yet.</p></div>`;
       return;
     }
-    // Pad gallery with extra products from ALL_PRODUCTS if too few
-    const SLOTS = 4;
-    if (galleryProducts.length < SLOTS) {
-      const ids = new Set(galleryProducts.map(p => p._id));
-      for (const p of ALL_PRODUCTS) {
-        if (!ids.has(p._id)) { galleryProducts.push(p); ids.add(p._id); }
-        if (galleryProducts.length >= SLOTS + 4) break; // enough for pool too
-      }
-    }
 
-    const displayCount = Math.min(SLOTS, galleryProducts.length);
-    const visibleProducts = galleryProducts.slice(0, displayCount);
-
-    // Build a shuffle pool: start with gallery overflow, then pad with ALL_PRODUCTS
-    const visibleIds = new Set(visibleProducts.map(p => p._id));
-    let hiddenPool = galleryProducts.slice(displayCount).filter(p => !visibleIds.has(p._id));
-
-    // Add products from ALL_PRODUCTS that aren't already visible
-    ALL_PRODUCTS.forEach(p => {
-      if (!visibleIds.has(p._id) && !hiddenPool.find(h => h._id === p._id)) {
-        hiddenPool.push(p);
-      }
+    // Dedup and pool as many products as we can for the reels.
+    const pool = [];
+    const seen = new Set();
+    [...galleryProducts, ...ALL_PRODUCTS].forEach(p => {
+      if (!seen.has(p._id)) { seen.add(p._id); pool.push(p); }
     });
 
-    container.innerHTML = visibleProducts.map((p, idx) => `
-      <div class="gallery-item" data-index="${idx}" onclick="location.href='product.html?id=${p._id}'">
-        <img src="${imgUrl(p.img)}" alt="${p.name}" id="galleryImg-${idx}">
-        <div class="gallery-item-overlay">
-          <h4 id="galleryTitle-${idx}">${p.name}</h4>
-          <p id="galleryCategory-${idx}">${p.category.toUpperCase()}</p>
-        </div>
-      </div>
-    `).join("");
+    const COLUMNS = 4;
+    const MIN_PER_COLUMN = 4; // enough height for a smooth, non-repetitive loop
 
-    const activeProducts = [...visibleProducts];
-
-    // Each cell shuffles on its own independent, randomized timer — rather
-    // than all four swapping in lockstep — so the gallery reads as
-    // continuous, staggered motion instead of one big synchronized blink.
-    if (hiddenPool.length > 0) {
-      const scheduleCell = (cellIndex) => {
-        const delay = 1800 + Math.random() * 1800; // 1.8s–3.6s, per cell
-        setTimeout(() => {
-          if (hiddenPool.length === 0) { scheduleCell(cellIndex); return; }
-
-          const poolIndex = Math.floor(Math.random() * hiddenPool.length);
-          const nextProduct = hiddenPool[poolIndex];
-          const imgEl = document.getElementById(`galleryImg-${cellIndex}`);
-          const titleEl = document.getElementById(`galleryTitle-${cellIndex}`);
-          const catEl = document.getElementById(`galleryCategory-${cellIndex}`);
-
-          if (imgEl && nextProduct) {
-            const cardEl = imgEl.parentElement;
-            imgEl.classList.add("out");
-
-            setTimeout(() => {
-              const oldProduct = activeProducts[cellIndex];
-              hiddenPool[poolIndex] = oldProduct;
-              activeProducts[cellIndex] = nextProduct;
-
-              imgEl.src = imgUrl(nextProduct.img);
-              imgEl.alt = nextProduct.name;
-              titleEl.textContent = nextProduct.name;
-              catEl.textContent = nextProduct.category.toUpperCase();
-              cardEl.setAttribute("onclick", `location.href='product.html?id=${nextProduct._id}'`);
-
-              imgEl.classList.remove("out");
-            }, 300);
-          }
-
-          scheduleCell(cellIndex);
-        }, delay);
-      };
-
-      for (let cellIndex = 0; cellIndex < displayCount; cellIndex++) {
-        scheduleCell(cellIndex);
-      }
+    // Deal the pool round-robin into columns, cycling back through it if
+    // the catalog is smaller than COLUMNS * MIN_PER_COLUMN.
+    const columns = Array.from({ length: COLUMNS }, () => []);
+    let dealt = 0;
+    const target = COLUMNS * Math.max(MIN_PER_COLUMN, Math.ceil(pool.length / COLUMNS));
+    while (dealt < target) {
+      const p = pool[dealt % pool.length];
+      columns[dealt % COLUMNS].push(p);
+      dealt++;
     }
+
+    container.innerHTML = columns.map((items, colIdx) => {
+      // Duplicate the column's items so the keyframe can loop seamlessly
+      // by traveling exactly one copy's worth of height (-50%).
+      const cellsHtml = [...items, ...items].map(p => `
+        <div class="gallery-reel-cell" onclick="location.href='product.html?id=${p._id}'">
+          <div class="gallery-reel-cell-bg" style="--cell-bg:url('${imgUrl(p.img)}')"></div>
+          <img src="${imgUrl(p.img)}" alt="${p.name}" loading="lazy">
+        </div>
+      `).join("");
+
+      // Stagger duration and start offset per column so the reels don't
+      // all tick in lockstep — reads as continuous, organic motion.
+      // Seconds-per-cell (7.1) is tuned to the 340px cell height for the
+      // same ~48px/s scroll speed the gallery had at the old 240px size.
+      const duration = (items.length * 7.1 + colIdx * 2.8).toFixed(1);
+      const delay = (-(colIdx * items.length * 1.8)).toFixed(1);
+
+      return `
+        <div class="gallery-item" data-index="${colIdx}">
+          <div class="gallery-reel" style="animation-duration:${duration}s; animation-delay:${delay}s;">
+            ${cellsHtml}
+          </div>
+        </div>
+      `;
+    }).join("");
   } catch (err) {
     container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Could not load showcase gallery.</p></div>`;
   }
